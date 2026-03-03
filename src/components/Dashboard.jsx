@@ -2,12 +2,13 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
-  const { logout } = useAuth();
+  const { logout, currentUser } = useAuth();
   const navigate = useNavigate();
+  const user = currentUser();
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate('/login');
   };
 
   return (
@@ -39,7 +40,7 @@ export default function Dashboard() {
           </svg>
         </div>
         <h1 className="text-3xl font-bold text-[#342d2d] tracking-tight">
-          Welcome to your Dashboard
+          Welcome back{user?.firstName ? `, ${user.firstName}` : ''}!
         </h1>
         <p className="text-base text-[#9e9e9e] text-center max-w-md">
           You're successfully authenticated. Your cybersecurity workspace is ready.

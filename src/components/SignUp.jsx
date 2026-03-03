@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import Toast from './Toast';
+import FloatingInput from './FloatingInput';
 import heroImage from '../assets/design_image_0.png';
 import appleLogo from '../assets/apple.png';
 import googleLogo from '../assets/google.png';
@@ -9,58 +10,8 @@ import metaLogo from '../assets/meta.png';
 import openEye from '../assets/open_eye.png';
 import closeEye from '../assets/close_eye.png';
 
-// Custom floating-label input — no external library
-function FloatingInput({ id, name, label, type = 'text', value, onChange, minLength, endAdornment }) {
-  const [focused, setFocused] = useState(false);
-  const floated = focused || value.length > 0;
-
-  return (
-    <div
-      className={`relative border rounded-[10px] transition-colors ${
-        focused ? 'border-[#0e9e9e]' : 'border-[#dddddd] hover:border-[#0e9e9e]'
-      }`}
-    >
-      <label
-        htmlFor={id}
-        style={{
-          position: 'absolute',
-          left: '12px',
-          fontFamily: 'Outfit, sans-serif',
-          pointerEvents: 'none',
-          transition: 'top 0.15s, font-size 0.15s, color 0.15s, transform 0.15s',
-          top: floated ? '5px' : '50%',
-          transform: floated ? 'none' : 'translateY(-50%)',
-          fontSize: floated ? '11px' : '14px',
-          color: floated && focused ? '#0e9e9e' : '#9e9e9e',
-          lineHeight: 1,
-        }}
-      >
-        {label}
-      </label>
-      <input
-        id={id}
-        name={name}
-        type={type}
-        value={value}
-        onChange={onChange}
-        minLength={minLength}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        autoComplete="off"
-        style={{ fontFamily: 'Outfit, sans-serif' }}
-        className="w-full pt-[22px] pb-[6px] text-[15px] text-[#342d2d] bg-transparent outline-none rounded-[10px] pr-10 pl-3"
-      />
-      {endAdornment && (
-        <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center">
-          {endAdornment}
-        </div>
-      )}
-    </div>
-  );
-}
-
 function SignUp() {
-  const { login } = useAuth();
+  const { register, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
@@ -71,6 +22,9 @@ function SignUp() {
     email: '',
     password: '',
   });
+
+  // Guard must come AFTER all hooks — React requires consistent hook call order
+  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -86,7 +40,11 @@ function SignUp() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!isFormFilled) return;
-    login();
+    const result = register(form);
+    if (!result.success) {
+      setToast({ message: result.message, type: 'error' });
+      return;
+    }
     setToast({ message: 'Account created successfully!', type: 'success' });
     setTimeout(() => navigate('/dashboard'), 1500);
   };
@@ -181,7 +139,7 @@ function SignUp() {
           <h2 className="text-4xl font-bold text-[#342d2d] text-center tracking-tight m-0 mb-1 max-sm:text-[28px]">Sign up</h2>
           <p className="text-base text-[#342d2d] text-center m-0 mb-7">
             Already have an account?{' '}
-            <a href="#" className="text-[#0e9e9e] underline font-medium hover:underline">Log in</a>
+            <Link to="/login" className="text-[#0e9e9e] underline font-medium hover:underline">Log in</Link>
           </p>
 
           <form onSubmit={handleSubmit} noValidate>
@@ -190,7 +148,7 @@ function SignUp() {
               <FloatingInput
                 id="firstName"
                 name="firstName"
-                label="First name"
+                label="First name*"
                 value={form.firstName}
                 onChange={handleChange}
               />
@@ -201,7 +159,7 @@ function SignUp() {
               <FloatingInput
                 id="lastName"
                 name="lastName"
-                label="Last name"
+                label="Last name*"
                 value={form.lastName}
                 onChange={handleChange}
               />
@@ -212,7 +170,7 @@ function SignUp() {
               <FloatingInput
                 id="email"
                 name="email"
-                label="Email address"
+                label="Email address*"
                 type="email"
                 value={form.email}
                 onChange={handleChange}
@@ -224,7 +182,7 @@ function SignUp() {
               <FloatingInput
                 id="password"
                 name="password"
-                label="Password (8+ characters)"
+                label="Password (8+ characters)*"
                 type={showPassword ? 'text' : 'password'}
                 value={form.password}
                 onChange={handleChange}
