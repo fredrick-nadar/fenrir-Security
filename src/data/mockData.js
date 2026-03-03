@@ -5,7 +5,7 @@ export const orgSummary = {
   scheduled: 1000,
   rescans: 100,
   failedScans: 100,
-  lastUpdated: "10 mins ago",
+  lastUpdated: "4 days ago",
 };
 
 export const severityStats = [
@@ -93,4 +93,4 @@ const generatedScans = Array.from({ length: 85 }, (_, i) => generateScan(i + 16)
 
 // ─── Final Export — 100 Total ────────────────────────────────────────────────
 export const scans = [...baseScans, ...generatedScans];
-export const totalScans = scans.length; // 100
+export const totalScans = scans.length; 

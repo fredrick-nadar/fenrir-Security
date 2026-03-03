@@ -2,7 +2,8 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { orgSummary, severityStats, scans, totalScans } from '../data/mockData';
-import { LayoutGrid, ClipboardCheck, BarChart3, Calendar, Bell, Settings, Info, Ban, AlertTriangle, Search, Filter, Columns, Plus, RefreshCw, List } from 'lucide-react';
+import { LayoutGrid, ClipboardCheck, BarChart3, Calendar, Bell, Settings, Info, Ban, AlertTriangle, Search, SearchAlert, Filter, Columns, Plus, RefreshCw, List, Network, FlaskConical, FileText } from 'lucide-react';
+import spideringPng from '../assets/spidering.png';
 import NewScanModal from './NewScanModal';
 import Toast from './Toast';
 
@@ -67,16 +68,17 @@ const severityConfig = {
   },
   low: {
     color: '#6366f1', bg: '#eef2ff',
-    icon: <Search size={22} strokeWidth={1.8} color="#6366f1" />,
+    icon: <SearchAlert size={22} strokeWidth={1.8} color="#6366f1" />,
   },
 };
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 function StatusChip({ status }) {
   const map = {
-    Completed: 'bg-[#dcfce7] text-[#16a34a]',
-    Scheduled: 'bg-[#f3f4f6] text-[#6b7280]',
-    Failed:    'bg-[#fee2e2] text-[#dc2626]',
+    Completed:   'bg-[#dcfce7] text-[#16a34a]',
+    'In Progress': 'bg-[#e0f2fe] text-[#0369a1]',
+    Scheduled:   'bg-[#f3f4f6] text-[#6b7280]',
+    Failed:      'bg-[#fee2e2] text-[#dc2626]',
   };
   return (
     <span className={`inline-flex items-center px-3 py-0.5 rounded-full text-xs font-semibold ${map[status] || map.Scheduled}`}>
@@ -121,6 +123,7 @@ function ProgressBar({ value }) {
 
 // ─── Scan Detail constants ──────────────────────────────────────────────────
 const STEPS = ['Spidering', 'Mapping', 'Testing', 'Validating', 'Reporting'];
+const STEP_ICONS = [null, Network, FlaskConical, ClipboardCheck, FileText];
 
 const ACTIVITY_LOG = [
   { time: '09:00:00', text: "I'll begin a systematic penetration test on ", link: 'helpdesk.democorp.com', after: ". Let me start with reconnaissance and enumeration." },
@@ -138,7 +141,7 @@ const FINDINGS = [
   { severity: 'Medium',   color: '#eab308', bg: '#fefce8', title: 'Broken Authentication Rate Limiting',        path: '/api/search',       desc: 'No effective rate limiting detected on login attempts. Automated brute-force attacks are possible.', time: '18:45:23' },
 ];
 
-// ─── Main Dashboard ───────────────────────────────────────────────────────────
+
 export default function Dashboard() {
   const { logout, currentUser } = useAuth();
   const navigate = useNavigate();
@@ -157,8 +160,28 @@ export default function Dashboard() {
   const [isModalOpen, setIsModalOpen]       = useState(false);
   const [toast, setToast]                   = useState(null);
   const [page, setPage]                     = useState(0);
+  const [scanStartTime, setScanStartTime]   = useState(() => new Date());
+  const [lastScanTime, setLastScanTime]     = useState(() => new Date(Date.now() - 4 * 24 * 60 * 60 * 1000));
+  const [lastUpdatedLabel, setLastUpdatedLabel] = useState('4 days ago');
   const PAGE_SIZE = 15;
   const filterRef = useRef(null);
+
+  // Tick the "X mins/secs ago" label every second
+  useEffect(() => {
+    const fmt = () => {
+      const diff = Math.floor((Date.now() - lastScanTime.getTime()) / 1000);
+      if (diff < 60)  return `${diff}s ago`;
+      const m = Math.floor(diff / 60);
+      if (m < 60)     return `${m} min${m !== 1 ? 's' : ''} ago`;
+      const h = Math.floor(m / 60);
+      if (h < 24)     return `${h} hr${h !== 1 ? 's' : ''} ago`;
+      const d = Math.floor(h / 24);
+      return `${d} day${d !== 1 ? 's' : ''} ago`;
+    };
+    setLastUpdatedLabel(fmt());
+    const id = setInterval(() => setLastUpdatedLabel(fmt()), 1000);
+    return () => clearInterval(id);
+  }, [lastScanTime]);
 
   const selectedScan = selectedScanId != null ? scanList.find(s => s.id === selectedScanId) : null;
 
@@ -192,9 +215,17 @@ export default function Dashboard() {
   const activeFilterCount = (filterStatus ? 1 : 0) + (filterType ? 1 : 0);
 
   const handleLogout  = () => { logout(); navigate('/login'); };
+
+  // Format a timestamp as HH:MM:SS offset by `offsetMinutes` from scanStartTime
+  const logTime = (offsetMinutes) => {
+    const d = new Date(scanStartTime.getTime() + offsetMinutes * 60 * 1000);
+    return d.toTimeString().slice(0, 8);
+  };
+
   const handleNavClick = (item) => {
     setActiveNav(item.key);
     if (item.key === 'scans') {
+      setScanStartTime(new Date());
       setSelectedScanId(scanList[0].id);
       setConsoleOpen(true);
       setConsoleTab('activity');
@@ -206,6 +237,8 @@ export default function Dashboard() {
 
   const handleNewScan = (newScan) => {
     const id = Date.now();
+    setScanStartTime(new Date());
+    setLastScanTime(new Date());
     setScanList(prev => [{ ...newScan, id }, ...prev]);
     setToast('Scan initiated successfully');
     // After 3 seconds, flip status to Completed
@@ -425,42 +458,64 @@ export default function Dashboard() {
                       <circle cx="50" cy="50" r="42" fill="none" stroke="#f3f4f6" strokeWidth="10"/>
                       <circle cx="50" cy="50" r="42" fill="none" stroke="#0CC8A8" strokeWidth="10"
                         strokeDasharray={`${2 * Math.PI * 42}`}
-                        strokeDashoffset={`${2 * Math.PI * 42 * (1 - selectedScan.progress / 100)}`}
+                        strokeDashoffset={`${2 * Math.PI * 42}`}
                         strokeLinecap="round"
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-xl font-bold text-[#1a1a1a] leading-none">{selectedScan.progress}%</span>
-                      <span className="text-[10px] text-gray-400 mt-0.5">{selectedScan.status}</span>
+                      <span className="text-xl font-bold text-[#1a1a1a] leading-none">0%</span>
+                      <span className="text-[10px] text-gray-400 mt-0.5">In Progress</span>
                     </div>
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-0">
-                      {STEPS.map((step, i) => (
-                        <div key={step} className="flex items-center flex-1">
-                          <div className="flex flex-col items-center flex-1">
-                            <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center mb-1.5 transition-colors
-                              ${i === 0 ? 'border-[#0CC8A8] bg-[#0CC8A8]' : 'border-gray-200 bg-white'}`}>
-                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                {i === 0 && <circle cx="8" cy="8" r="3.5" fill="white"/>}
-                                {i === 1 && <><rect x="3" y="3" width="4" height="4" rx="0.8" stroke="#d1d5db" strokeWidth="1.4"/><rect x="9" y="3" width="4" height="4" rx="0.8" stroke="#d1d5db" strokeWidth="1.4"/></>}
-                                {i === 2 && <path d="M4 8l2.5 2.5L12 5" stroke="#d1d5db" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>}
-                                {i === 3 && <path d="M3 8h10M8 3v10" stroke="#d1d5db" strokeWidth="1.4" strokeLinecap="round"/>}
-                                {i === 4 && <rect x="3" y="2" width="10" height="12" rx="1.5" stroke="#d1d5db" strokeWidth="1.4"/>}
-                              </svg>
+                      {STEPS.map((step, i) => {
+                        const Icon = STEP_ICONS[i];
+                        const active = i === 0;
+                        return (
+                          <div key={step} className="flex items-center flex-1">
+                            <div className="flex flex-col items-center flex-1">
+                              {active ? (
+                                <div className="relative flex items-center justify-center mb-1.5">
+                                  {/* Animated pulse ring */}
+                                  <span
+                                    className="absolute rounded-full bg-[#0CC8A8]"
+                                    style={{
+                                      width: 52, height: 52,
+                                      animation: 'pulseSoft 2s ease-out infinite',
+                                    }}
+                                  />
+                                  {/* Static soft ring */}
+                                  <span className="absolute w-12 h-12 rounded-full bg-[#0CC8A8]/20" />
+                                  {/* Main circle */}
+                                  <div className="relative w-10 h-10 rounded-full bg-[#0CC8A8] flex items-center justify-center z-10">
+                                    {i === 0
+                                      ? <img src={spideringPng} width={18} height={18} alt="spidering" style={{ filter: 'brightness(0) invert(1)', objectFit: 'contain' }} />
+                                      : <Icon size={18} color="white" strokeWidth={1.5} />
+                                    }
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="w-10 h-10 rounded-full border-2 border-gray-200 bg-white flex items-center justify-center mb-1.5">
+                                  {i === 0
+                                    ? <img src={spideringPng} width={18} height={18} alt="spidering" style={{ filter: 'brightness(0) opacity(0.35)', objectFit: 'contain' }} />
+                                    : <Icon size={18} color="#d1d5db" strokeWidth={1.5} />
+                                  }
+                                </div>
+                              )}
+                              <span className={`text-xs font-medium ${active ? 'text-[#0CC8A8]' : 'text-gray-400'}`}>{step}</span>
                             </div>
-                            <span className={`text-xs font-medium ${i === 0 ? 'text-[#0CC8A8]' : 'text-gray-400'}`}>{step}</span>
+                            {i < STEPS.length - 1 && <div className="h-px flex-1 mx-1 mb-6 bg-gray-200" />}
                           </div>
-                          {i < STEPS.length - 1 && <div className="h-px flex-1 mx-1 mb-6 bg-gray-200" />}
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
                 <div className="flex items-stretch mt-6 pt-5 border-t border-gray-100 text-sm">
                   {[
                     { label: 'Scan Type',   value: selectedScan.type },
-                    { label: 'Status',      value: selectedScan.status },
+                    { label: 'Status',      value: 'In Progress' },
                     { label: 'Last Scan',   value: selectedScan.lastScan },
                     { label: 'Credentials', value: '2 Active' },
                     { label: 'Checklists',  value: '40/350', accent: true },
@@ -498,8 +553,8 @@ export default function Dashboard() {
                   </div>
 
                   <div className="flex" style={{ height: '360px' }}>
-                    {/* Activity / Verification panel */}
-                    <div className="flex-1 flex flex-col border-r border-gray-100 min-w-0">
+                    {/* Activity / Verification panel — 60% */}
+                    <div className="flex flex-col border-r border-gray-100 min-w-0" style={{ width: '60%' }}>
                       <div className="flex border-b border-gray-100 px-4 pt-2">
                         {['Activity Log', 'Verification Loops'].map(tab => {
                           const key = tab === 'Activity Log' ? 'activity' : 'verification';
@@ -519,11 +574,11 @@ export default function Dashboard() {
                           );
                         })}
                       </div>
-                      <div className="flex-1 overflow-y-auto px-5 py-4 font-mono text-xs text-[#1a1a1a] leading-relaxed space-y-2.5">
+                      <div className="flex-1 overflow-y-auto px-5 py-4 text-xs text-[#1a1a1a] leading-relaxed space-y-2.5" style={{ fontFamily: 'Outfit, sans-serif' }}>
                         {consoleTab === 'activity'
                           ? ACTIVITY_LOG.map((entry, i) => (
                               <div key={i}>
-                                <span className="text-gray-400">[{entry.time}] </span>
+                                <span className="text-gray-400">[{logTime(i)}] </span>
                                 {entry.text}
                                 {entry.link && <span className="bg-[#1a1a1a] text-white px-1.5 py-0.5 rounded text-[10px] mx-0.5">{entry.link}</span>}
                                 {entry.highlight && <span className="bg-[#dbeafe] text-[#1d4ed8] px-1.5 py-0.5 rounded text-[10px] mx-0.5 font-semibold">{entry.highlight}</span>}
@@ -553,8 +608,8 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    {/* Finding Log */}
-                    <div className="w-72 flex-shrink-0 flex flex-col">
+                    {/* Finding Log — 40% */}
+                    <div className="flex flex-col min-w-0" style={{ width: '40%' }}>
                       <div className="px-4 py-3 border-b border-gray-100">
                         <span className="text-xs font-semibold text-[#1a1a1a]">Finding Log</span>
                       </div>
@@ -563,7 +618,7 @@ export default function Dashboard() {
                           <div key={i} className="border border-gray-100 rounded-lg p-3">
                             <div className="flex items-center justify-between mb-1.5">
                               <span className="text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ backgroundColor: f.bg, color: f.color }}>{f.severity}</span>
-                              <span className="text-[10px] text-gray-400">{f.time}</span>
+                              <span className="text-[10px] text-gray-400">{logTime(2 + i * 2)}</span>
                             </div>
                             <p className="text-xs font-semibold text-[#1a1a1a] mb-0.5 leading-snug">{f.title}</p>
                             <p className="text-[10px] text-[#0CC8A8] mb-1.5">{f.path}</p>
@@ -579,10 +634,10 @@ export default function Dashboard() {
                     <span>Parallel Executions: 2</span>
                     <span>Operations: 1</span>
                     <div className="ml-auto flex items-center gap-4">
-                      <span className="text-[#ef4444]">Critical: {selectedScan.vulnerabilities.critical}</span>
-                      <span className="text-[#f97316]">High: {selectedScan.vulnerabilities.high}</span>
-                      <span className="text-[#eab308]">Medium: {selectedScan.vulnerabilities.medium}</span>
-                      <span className="text-[#22c55e]">Low: {selectedScan.vulnerabilities.low}</span>
+                      <span className="text-[#ef4444]">Critical: 1</span>
+                      <span className="text-[#f97316]">High:1</span>
+                      <span className="text-[#eab308]">Medium: 1</span>
+                      <span className="text-[#22c55e]">Low: 0</span>
                     </div>
                   </div>
                 </div>
@@ -623,7 +678,7 @@ export default function Dashboard() {
             ))}
             <div className="flex items-center gap-1.5 text-gray-400 pl-5 ml-4 border-l border-gray-200 whitespace-nowrap">
               <RefreshCw size={14} strokeWidth={1.5} />
-              <span className="text-xs">{orgSummary.lastUpdated}</span>
+              <span className="text-xs">{lastUpdatedLabel}</span>
             </div>
           </div>
 
