@@ -5,7 +5,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { orgSummary, severityStats, scans, totalScans } from '../data/mockData';
 import { LayoutGrid, ClipboardCheck, BarChart3, Calendar, Bell, Settings, Info, Ban, AlertTriangle, Search, SearchAlert, Filter, Columns, Plus, RefreshCw, List, Network, FlaskConical, FileText, Timer, Moon, Sun } from 'lucide-react';
-import spideringPng from '../assets/spidering.png';
+import spideringPng from '../assets/Spidering.png';
 import NewScanModal from './NewScanModal';
 import Toast from './Toast';
 
