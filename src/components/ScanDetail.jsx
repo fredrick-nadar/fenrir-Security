@@ -236,7 +236,7 @@ export default function ScanDetail() {
                     ))}
                   </div>
                   {/* Log output */}
-                  <div className="flex-1 overflow-y-auto px-5 py-4 font-mono text-xs text-[#1a1a1a] leading-relaxed space-y-2.5">
+                  <div className="flex-1 overflow-y-auto px-5 py-4 text-xs text-[#1a1a1a] leading-relaxed space-y-2.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                     {ACTIVITY_LOG.map((entry, i) => (
                       <div key={i}>
                         <span className="text-gray-400">[{entry.time}] </span>

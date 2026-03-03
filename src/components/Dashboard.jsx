@@ -693,7 +693,7 @@ export default function Dashboard() {
                           );
                         })}
                       </div>
-                      <div className="flex-1 overflow-y-auto px-5 py-4 text-xs text-[#1a1a1a] leading-relaxed space-y-2.5" style={{ fontFamily: 'Outfit, sans-serif' }}>
+                      <div className="flex-1 overflow-y-auto px-5 py-4 text-xs text-[#1a1a1a] leading-relaxed space-y-2.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                         {consoleTab === 'activity'
                           ? ACTIVITY_LOG.map((entry, i) => (
                               <div key={i}>
