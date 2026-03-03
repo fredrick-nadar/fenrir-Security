@@ -1,46 +1,31 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { orgSummary, severityStats, scans, totalScans } from '../data/mockData';
+import { LayoutGrid, ClipboardCheck, BarChart3, Calendar, Bell, Settings, Info, Ban, AlertTriangle, Search, Filter, Columns, Plus, RefreshCw, List } from 'lucide-react';
 
 // ─── Sidebar nav items ────────────────────────────────────────────────────────
 const NAV_TOP = [
   {
     key: 'dashboard', label: 'Dashboard', path: '/dashboard',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-        <rect x="1" y="1" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.6"/>
-        <rect x="10" y="1" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.6"/>
-        <rect x="1" y="10" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.6"/>
-        <rect x="10" y="10" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.6"/>
-      </svg>
-    ),
+    icon: <LayoutGrid size={18} strokeWidth={1.5} />,
   },
   {
     key: 'projects', label: 'Projects', path: '/projects',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-        <path d="M2 5a2 2 0 0 1 2-2h2.5l2 2H14a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5z" stroke="currentColor" strokeWidth="1.6"/>
-      </svg>
-    ),
+    icon: <ClipboardCheck size={18} strokeWidth={1.5} />,
   },
   {
     key: 'scans', label: 'Scans', path: '/scans',
     icon: (
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-        <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.6"/>
-        <path d="M12.5 12.5L16 16" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-      </svg>
+      <div className="relative">
+        <BarChart3 size={18} strokeWidth={1.5} />
+        <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-orange-500 rounded-full" />
+      </div>
     ),
   },
   {
     key: 'schedule', label: 'Schedule', path: '/schedule',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-        <rect x="2" y="3" width="14" height="13" rx="2" stroke="currentColor" strokeWidth="1.6"/>
-        <path d="M6 1v4M12 1v4M2 7h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-      </svg>
-    ),
+    icon: <Calendar size={18} strokeWidth={1.5} />,
   },
 ];
 
@@ -48,30 +33,19 @@ const NAV_BOTTOM = [
   {
     key: 'notifications', label: 'Notifications', path: '/notifications',
     icon: (
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-        <path d="M9 2a5.5 5.5 0 0 0-5.5 5.5v3l-1.5 2.5h14L14.5 10.5v-3A5.5 5.5 0 0 0 9 2z" stroke="currentColor" strokeWidth="1.6"/>
-        <path d="M7 14.5a2 2 0 0 0 4 0" stroke="currentColor" strokeWidth="1.6"/>
-      </svg>
+      <div className="relative">
+        <Bell size={18} strokeWidth={1.5} />
+        <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-orange-500 rounded-full" />
+      </div>
     ),
   },
   {
     key: 'settings', label: 'Settings', path: '/settings',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-        <circle cx="9" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.6"/>
-        <path d="M9 1v2M9 15v2M1 9h2M15 9h2M3.22 3.22l1.42 1.42M13.36 13.36l1.42 1.42M3.22 14.78l1.42-1.42M13.36 4.64l1.42-1.42" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-      </svg>
-    ),
+    icon: <Settings size={18} strokeWidth={1.5} />,
   },
   {
     key: 'support', label: 'Support', path: '/support',
-    icon: (
-      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-        <circle cx="9" cy="9" r="7.5" stroke="currentColor" strokeWidth="1.6"/>
-        <path d="M9 10.5V10c0-1 .8-1.5 1.5-2a2.5 2.5 0 1 0-3-2.4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
-        <circle cx="9" cy="13" r="0.75" fill="currentColor"/>
-      </svg>
-    ),
+    icon: <Info size={18} strokeWidth={1.5} />,
   },
 ];
 
@@ -79,42 +53,19 @@ const NAV_BOTTOM = [
 const severityConfig = {
   critical: {
     color: '#ef4444', bg: '#fef2f2',
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-        <circle cx="11" cy="11" r="9" stroke="#ef4444" strokeWidth="1.8"/>
-        <path d="M7.5 7.5l7 7M14.5 7.5l-7 7" stroke="#ef4444" strokeWidth="1.8" strokeLinecap="round"/>
-      </svg>
-    ),
+    icon: <Ban size={22} strokeWidth={1.8} color="#ef4444" />,
   },
   high: {
     color: '#f97316', bg: '#fff7ed',
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-        <path d="M11 2L20.5 19H1.5L11 2z" stroke="#f97316" strokeWidth="1.8" strokeLinejoin="round"/>
-        <path d="M11 9v4" stroke="#f97316" strokeWidth="1.8" strokeLinecap="round"/>
-        <circle cx="11" cy="15.5" r="0.8" fill="#f97316"/>
-      </svg>
-    ),
+    icon: <AlertTriangle size={22} strokeWidth={1.8} color="#f97316" />,
   },
   medium: {
     color: '#eab308', bg: '#fefce8',
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-        <path d="M11 2L20.5 19H1.5L11 2z" stroke="#eab308" strokeWidth="1.8" strokeLinejoin="round"/>
-        <path d="M11 9v4" stroke="#eab308" strokeWidth="1.8" strokeLinecap="round"/>
-        <circle cx="11" cy="15.5" r="0.8" fill="#eab308"/>
-      </svg>
-    ),
+    icon: <AlertTriangle size={22} strokeWidth={1.8} color="#eab308" />,
   },
   low: {
     color: '#6366f1', bg: '#eef2ff',
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-        <circle cx="9.5" cy="9.5" r="6" stroke="#6366f1" strokeWidth="1.8"/>
-        <path d="M14 14L19 19" stroke="#6366f1" strokeWidth="1.8" strokeLinecap="round"/>
-        <path d="M7 9.5h5M9.5 7v5" stroke="#6366f1" strokeWidth="1.8" strokeLinecap="round"/>
-      </svg>
-    ),
+    icon: <Search size={22} strokeWidth={1.8} color="#6366f1" />,
   },
 };
 
@@ -166,25 +117,81 @@ function ProgressBar({ value }) {
   );
 }
 
+// ─── Scan Detail constants ──────────────────────────────────────────────────
+const STEPS = ['Spidering', 'Mapping', 'Testing', 'Validating', 'Reporting'];
+
+const ACTIVITY_LOG = [
+  { time: '09:00:00', text: "I'll begin a systematic penetration test on ", link: 'helpdesk.democorp.com', after: ". Let me start with reconnaissance and enumeration." },
+  { time: '09:01:00', text: 'Good! target is online. Now let me perform port scanning to identify running services.', link: null },
+  { time: '09:02:00', text: 'Excellent reconnaissance results:', sub: '- helpdesk.democorp.com: Apache httpd 2.4.65 on port 80 (web server)\nLet me probe the web server on target first to understand its structure.', link: null },
+  { time: '09:03:00', text: 'Great! I found a login page for a Help Desk Platform. I can see a useful comment: "TODO: Delete the testing account (test:test)". Let me test this credential. The login redirects to ', link: '/password/test', after: '. Let me follow that path and explore it.' },
+  { time: '09:04:00', text: 'The POST method is not allowed on /password/test. Let me check what the JavaScript does - it posts to ', link: '#', after: ' which means the current page. Let me try a different approach.' },
+  { time: '09:05:00', text: "It redirects back to /password/test. Let me check if there's an /api endpoint or look for other paths. Let me also try exploring with the ", link: 'test:test', after: ' password directly on other endpoints.' },
+  { time: '09:06:00', text: "Great! I can access the dashboard using the ", highlight: "'X-UserId: 10032'", after: " header. The dashboard shows \"Welcome, John Doe\". This suggests an **IDOR vulnerability** - I can access any user's dashboard by just changing the X-UserId header.", link: null },
+];
+
+const FINDINGS = [
+  { severity: 'Critical', color: '#ef4444', bg: '#fef2f2', title: 'SQL Injection in Authentication Endpoint', path: '/api/users/profile', desc: 'Time-based blind SQL injection confirmed on user-controlled input during authentication flow.', time: '18:45:23' },
+  { severity: 'High',     color: '#f97316', bg: '#fff7ed', title: 'Unauthorized Access to User Metadata',      path: '/api/auth/login',   desc: 'Authenticated low-privilege user was able to access metadata of other users.', time: '18:45:23' },
+  { severity: 'Medium',   color: '#eab308', bg: '#fefce8', title: 'Broken Authentication Rate Limiting',        path: '/api/search',       desc: 'No effective rate limiting detected on login attempts. Automated brute-force attacks are possible.', time: '18:45:23' },
+];
+
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 export default function Dashboard() {
   const { logout, currentUser } = useAuth();
   const navigate = useNavigate();
   const user = currentUser();
 
-  const [activeNav, setActiveNav] = useState('dashboard');
-  const [search, setSearch] = useState('');
+  const [activeNav, setActiveNav]     = useState('dashboard');
+  const [search, setSearch]             = useState('');
+  const [filterOpen, setFilterOpen]     = useState(false);
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterType, setFilterType]     = useState('');
+  const [viewMode, setViewMode]         = useState('row'); // 'row' | 'column'
+  const [selectedScanId, setSelectedScanId] = useState(null);
+  const [consoleTab, setConsoleTab]         = useState('activity');
+  const [consoleOpen, setConsoleOpen]       = useState(true);
+  const filterRef = useRef(null);
+
+  const selectedScan = selectedScanId != null ? scans.find(s => s.id === selectedScanId) : null;
+
+  // Close filter dropdown when clicking outside
+  useEffect(() => {
+    const handler = (e) => {
+      if (filterRef.current && !filterRef.current.contains(e.target)) {
+        setFilterOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    return q
-      ? scans.filter(s => s.name.toLowerCase().includes(q) || s.type.toLowerCase().includes(q))
-      : scans;
-  }, [search]);
+    return scans.filter(s => {
+      const q = search.toLowerCase();
+      const matchSearch = !q || s.name.toLowerCase().includes(q) || s.type.toLowerCase().includes(q);
+      const matchStatus = !filterStatus || s.status === filterStatus;
+      const matchType   = !filterType   || s.type   === filterType;
+      return matchSearch && matchStatus && matchType;
+    });
+  }, [search, filterStatus, filterType]);
 
-  const handleLogout = () => { logout(); navigate('/login'); };
-  const handleNavClick = (item) => { setActiveNav(item.key); };
-  const handleRowClick = (id) => { navigate(`/scans/${id}`); };
+  const activeFilterCount = (filterStatus ? 1 : 0) + (filterType ? 1 : 0);
+
+  const handleLogout  = () => { logout(); navigate('/login'); };
+  const handleNavClick = (item) => {
+    setActiveNav(item.key);
+    if (item.key === 'scans') {
+      // Show first scan in the console by default
+      setSelectedScanId(scans[0].id);
+      setConsoleOpen(true);
+      setConsoleTab('activity');
+    } else {
+      setSelectedScanId(null);
+    }
+  };
+  // Row click does nothing — detail is accessed via the Scans nav button
+  const handleRowClick = () => {};
 
   return (
     <div className="flex h-screen bg-[#f8fafc] overflow-hidden" style={{ fontFamily: 'Outfit, sans-serif' }}>
@@ -234,12 +241,8 @@ export default function Dashboard() {
           })}
         </nav>
 
-        {/* User profile — click to log out */}
-        <div
-          className="px-4 py-4 border-t border-gray-100 flex items-center gap-3 cursor-pointer hover:bg-gray-50 transition-colors"
-          onClick={handleLogout}
-          title="Click to log out"
-        >
+        {/* User profile */}
+        <div className="px-4 py-4 border-t border-gray-100 flex items-center gap-3 transition-colors">
           <div className="w-8 h-8 rounded-full bg-[#0CC8A8]/20 flex items-center justify-center flex-shrink-0">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M8 2a3 3 0 1 1 0 6A3 3 0 0 1 8 2zm0 7c3.314 0 6 1.343 6 3v1H2v-1c0-1.657 2.686-3 6-3z" fill="#0CC8A8"/>
@@ -280,6 +283,299 @@ export default function Dashboard() {
         {/* Scrollable body */}
         <div className="flex-1 overflow-y-auto px-7 py-5 flex flex-col gap-5">
 
+          {/* ── PROJECTS VIEW ─────────────────────────── */}
+          {activeNav === 'projects' && (
+            <>
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-semibold text-[#1a1a1a]">Projects</h2>
+                <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#0CC8A8] text-sm font-semibold text-white hover:bg-[#0ab597] transition-colors cursor-pointer border-none">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="white" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                  New Project
+                </button>
+              </div>
+              <div className="grid grid-cols-4 gap-4">
+                {/* Project Card */}
+                <div className="bg-white rounded-xl border border-gray-100 p-5 flex flex-col gap-3 hover:border-[#0CC8A8] hover:shadow-sm transition-all cursor-pointer">
+                  <div className="flex items-center justify-between">
+                    <div className="w-9 h-9 rounded-lg bg-[#e6faf7] flex items-center justify-center">
+                      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M2 5a2 2 0 0 1 2-2h2.5l2 2H14a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5z" stroke="#0CC8A8" strokeWidth="1.6"/>
+                      </svg>
+                    </div>
+                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#dcfce7] text-[#16a34a] font-semibold">Active</span>
+                  </div>
+                  <div>
+                    <p className="font-semibold text-[#1a1a1a] text-sm">Project X</p>
+                  </div>
+                  <div className="flex flex-col gap-1.5 text-xs pt-1 border-t border-gray-100">
+                    {[
+                      { label: 'Org',          value: 'Project X' },
+                      { label: 'Owner',        value: 'Nammagiri' },
+                      { label: 'Total Scans',  value: '100' },
+                      { label: 'Scheduled',    value: '1000' },
+                    ].map(row => (
+                      <div key={row.label} className="flex items-center justify-between">
+                        <span className="text-gray-400">{row.label}</span>
+                        <span className="font-semibold text-[#1a1a1a]">{row.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ── SCHEDULE VIEW ── */}
+          {activeNav === 'schedule' && (
+            <>
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-semibold text-[#1a1a1a]">Scheduled Scans</h2>
+              </div>
+              <div className="bg-white rounded-xl border border-gray-100 flex flex-col">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-100">
+                        {['Scan Name','Type','Status','Progress','Vulnerability','Last Scan'].map(col => (
+                          <th key={col} className="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide whitespace-nowrap">{col}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {scans.filter(s => s.status === 'Scheduled').map(scan => (
+                        <tr key={scan.id} className="border-b border-gray-50 last:border-0">
+                          <td className="px-5 py-3.5 font-medium text-[#1a1a1a]">{scan.name}</td>
+                          <td className="px-5 py-3.5 text-gray-500">{scan.type}</td>
+                          <td className="px-5 py-3.5"><StatusChip status={scan.status} /></td>
+                          <td className="px-5 py-3.5"><ProgressBar value={scan.progress} /></td>
+                          <td className="px-5 py-3.5"><VulnBadges v={scan.vulnerabilities} /></td>
+                          <td className="px-5 py-3.5 text-gray-400 text-xs">{scan.lastScan}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="px-5 py-3 border-t border-gray-100 text-xs text-gray-400">
+                  {scans.filter(s => s.status === 'Scheduled').length} scheduled scan{scans.filter(s => s.status === 'Scheduled').length !== 1 ? 's' : ''}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* ── NOTIFICATIONS / SETTINGS / SUPPORT placeholder ── */}
+          {['notifications', 'settings', 'support'].includes(activeNav) && (
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 py-32 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-[#e6faf7] flex items-center justify-center">
+                <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+                  <circle cx="14" cy="14" r="11" stroke="#0CC8A8" strokeWidth="2"/>
+                  <path d="M14 9v6M14 18v1" stroke="#0CC8A8" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </div>
+              <div>
+                <p className="text-base font-semibold text-[#1a1a1a] capitalize">{activeNav}</p>
+                <p className="text-sm text-gray-400 mt-1">This section is yet to be added</p>
+              </div>
+            </div>
+          )}
+
+          {/* ── SCAN DETAIL VIEW (inline, shown via Scans nav) ── */}
+          {activeNav === 'scans' && selectedScan && (
+            <>
+              {/* Back breadcrumb */}
+              <div className="flex items-center gap-1.5 text-sm">
+                <button
+                  onClick={() => { setActiveNav('dashboard'); setSelectedScanId(null); }}
+                  className="flex items-center gap-1.5 text-gray-400 hover:text-[#0CC8A8] transition-colors cursor-pointer bg-transparent border-none p-0 text-sm"
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 11L5 7l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  Back to Scans
+                </button>
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 5l3 3-3 3" stroke="#d1d5db" strokeWidth="1.4" strokeLinecap="round"/></svg>
+                <span className="font-semibold text-[#1a1a1a]">{selectedScan.name}</span>
+              </div>
+
+              {/* Progress card */}
+              <div className="bg-white rounded-xl border border-gray-100 p-6">
+                <div className="flex items-center gap-8">
+                  <div className="flex-shrink-0 w-24 h-24 relative">
+                    <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                      <circle cx="50" cy="50" r="42" fill="none" stroke="#f3f4f6" strokeWidth="10"/>
+                      <circle cx="50" cy="50" r="42" fill="none" stroke="#0CC8A8" strokeWidth="10"
+                        strokeDasharray={`${2 * Math.PI * 42}`}
+                        strokeDashoffset={`${2 * Math.PI * 42 * (1 - selectedScan.progress / 100)}`}
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-xl font-bold text-[#1a1a1a] leading-none">{selectedScan.progress}%</span>
+                      <span className="text-[10px] text-gray-400 mt-0.5">{selectedScan.status}</span>
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-0">
+                      {STEPS.map((step, i) => (
+                        <div key={step} className="flex items-center flex-1">
+                          <div className="flex flex-col items-center flex-1">
+                            <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center mb-1.5 transition-colors
+                              ${i === 0 ? 'border-[#0CC8A8] bg-[#0CC8A8]' : 'border-gray-200 bg-white'}`}>
+                              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                {i === 0 && <circle cx="8" cy="8" r="3.5" fill="white"/>}
+                                {i === 1 && <><rect x="3" y="3" width="4" height="4" rx="0.8" stroke="#d1d5db" strokeWidth="1.4"/><rect x="9" y="3" width="4" height="4" rx="0.8" stroke="#d1d5db" strokeWidth="1.4"/></>}
+                                {i === 2 && <path d="M4 8l2.5 2.5L12 5" stroke="#d1d5db" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>}
+                                {i === 3 && <path d="M3 8h10M8 3v10" stroke="#d1d5db" strokeWidth="1.4" strokeLinecap="round"/>}
+                                {i === 4 && <rect x="3" y="2" width="10" height="12" rx="1.5" stroke="#d1d5db" strokeWidth="1.4"/>}
+                              </svg>
+                            </div>
+                            <span className={`text-xs font-medium ${i === 0 ? 'text-[#0CC8A8]' : 'text-gray-400'}`}>{step}</span>
+                          </div>
+                          {i < STEPS.length - 1 && <div className="h-px flex-1 mx-1 mb-6 bg-gray-200" />}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center mt-6 pt-5 border-t border-gray-100 text-sm flex-wrap gap-y-2">
+                  {[
+                    { label: 'Scan Type',   value: selectedScan.type },
+                    { label: 'Status',      value: selectedScan.status },
+                    { label: 'Last Scan',   value: selectedScan.lastScan },
+                    { label: 'Credentials', value: '2 Active' },
+                    { label: 'Checklists',  value: '40/350', accent: true },
+                  ].map((item, i) => (
+                    <div key={item.label} className="flex items-center">
+                      {i > 0 && <div className="w-px h-8 bg-gray-100 mx-6" />}
+                      <div className="flex flex-col">
+                        <span className="text-[11px] text-gray-400 mb-0.5">{item.label}</span>
+                        <span className={`font-semibold text-sm ${item.accent ? 'text-[#0CC8A8]' : 'text-[#1a1a1a]'}`}>{item.value}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Live Scan Console */}
+              {consoleOpen && (
+                <div className="bg-white rounded-xl border border-gray-100 flex flex-col">
+                  <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-2 h-2 rounded-full bg-[#0CC8A8] animate-pulse" />
+                      <span className="text-sm font-semibold text-[#1a1a1a]">Live Scan Console</span>
+                      <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-gray-200 text-xs text-gray-400 ml-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#eab308]" />
+                        Running...
+                      </div>
+                    </div>
+                    <button onClick={() => setConsoleOpen(false)} className="text-gray-400 hover:text-gray-600 cursor-pointer bg-transparent border-none p-1">
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+                    </button>
+                  </div>
+
+                  <div className="flex" style={{ height: '360px' }}>
+                    {/* Activity / Verification panel */}
+                    <div className="flex-1 flex flex-col border-r border-gray-100 min-w-0">
+                      <div className="flex border-b border-gray-100 px-4 pt-2">
+                        {['Activity Log', 'Verification Loops'].map(tab => {
+                          const key = tab === 'Activity Log' ? 'activity' : 'verification';
+                          return (
+                            <button
+                              key={tab}
+                              onClick={() => setConsoleTab(key)}
+                              className="px-4 py-2 text-xs font-semibold border-none cursor-pointer transition-colors bg-transparent"
+                              style={{
+                                color: consoleTab === key ? '#0CC8A8' : '#9ca3af',
+                                borderBottom: consoleTab === key ? '2px solid #0CC8A8' : '2px solid transparent',
+                                marginBottom: '-1px',
+                              }}
+                            >
+                              {tab}
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="flex-1 overflow-y-auto px-5 py-4 font-mono text-xs text-[#1a1a1a] leading-relaxed space-y-2.5">
+                        {consoleTab === 'activity'
+                          ? ACTIVITY_LOG.map((entry, i) => (
+                              <div key={i}>
+                                <span className="text-gray-400">[{entry.time}] </span>
+                                {entry.text}
+                                {entry.link && <span className="bg-[#1a1a1a] text-white px-1.5 py-0.5 rounded text-[10px] mx-0.5">{entry.link}</span>}
+                                {entry.highlight && <span className="bg-[#dbeafe] text-[#1d4ed8] px-1.5 py-0.5 rounded text-[10px] mx-0.5 font-semibold">{entry.highlight}</span>}
+                                {entry.after && <span>{entry.after}</span>}
+                                {entry.sub && <div className="mt-1 ml-4 text-gray-500 whitespace-pre-line">{entry.sub}</div>}
+                              </div>
+                            ))
+                          : (
+                              <div className="space-y-3 pt-1">
+                                {['Verify SQL Injection – /api/auth/login', 'Verify IDOR – /api/users/profile', 'Verify Rate Limit – /api/search'].map((loop, i) => (
+                                  <div key={i} className="border border-gray-100 rounded-lg p-3">
+                                    <div className="flex items-center justify-between mb-1">
+                                      <span className="text-xs font-semibold text-[#1a1a1a]">{loop}</span>
+                                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${i === 0 ? 'bg-[#dcfce7] text-[#16a34a]' : 'bg-[#f3f4f6] text-[#6b7280]'}`}>
+                                        {i === 0 ? 'Confirmed' : 'Pending'}
+                                      </span>
+                                    </div>
+                                    <p className="text-[10px] text-gray-400">Loop {i + 1} of 3 · {i === 0 ? '3/3 payloads confirmed' : '0/3 payloads tested'}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            )
+                        }
+                        <div className="flex items-center gap-1 text-gray-400">
+                          <div className="w-0.5 h-4 bg-[#0CC8A8] animate-pulse rounded-full" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Finding Log */}
+                    <div className="w-72 flex-shrink-0 flex flex-col">
+                      <div className="px-4 py-3 border-b border-gray-100">
+                        <span className="text-xs font-semibold text-[#1a1a1a]">Finding Log</span>
+                      </div>
+                      <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2.5">
+                        {FINDINGS.map((f, i) => (
+                          <div key={i} className="border border-gray-100 rounded-lg p-3">
+                            <div className="flex items-center justify-between mb-1.5">
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ backgroundColor: f.bg, color: f.color }}>{f.severity}</span>
+                              <span className="text-[10px] text-gray-400">{f.time}</span>
+                            </div>
+                            <p className="text-xs font-semibold text-[#1a1a1a] mb-0.5 leading-snug">{f.title}</p>
+                            <p className="text-[10px] text-[#0CC8A8] mb-1.5">{f.path}</p>
+                            <p className="text-[10px] text-gray-400 leading-snug">{f.desc}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="px-5 py-2 border-t border-gray-100 flex items-center gap-6 text-[11px] text-gray-400">
+                    <span>Sub-Agents: 0</span>
+                    <span>Parallel Executions: 2</span>
+                    <span>Operations: 1</span>
+                    <div className="ml-auto flex items-center gap-4">
+                      <span className="text-[#ef4444]">Critical: {selectedScan.vulnerabilities.critical}</span>
+                      <span className="text-[#f97316]">High: {selectedScan.vulnerabilities.high}</span>
+                      <span className="text-[#eab308]">Medium: {selectedScan.vulnerabilities.medium}</span>
+                      <span className="text-[#22c55e]">Low: {selectedScan.vulnerabilities.low}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {!consoleOpen && (
+                <button
+                  onClick={() => setConsoleOpen(true)}
+                  className="flex items-center gap-2 self-start px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:border-[#0CC8A8] hover:text-[#0CC8A8] transition-colors cursor-pointer bg-white"
+                >
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#0CC8A8]" />
+                  Open Console
+                </button>
+              )}
+            </>
+          )}
+
+          {/* ── DASHBOARD VIEW ────────────────────────── */}
+          {activeNav === 'dashboard' && <>
+
           {/* Org Summary Bar */}
           <div className="bg-white rounded-xl border border-gray-100 px-6 py-3.5 flex items-center text-sm">
             {[
@@ -299,10 +595,7 @@ export default function Dashboard() {
               </div>
             ))}
             <div className="flex items-center gap-1.5 text-gray-400 pl-5 ml-4 border-l border-gray-200 whitespace-nowrap">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="text-[#0CC8A8] flex-shrink-0">
-                <path d="M7 1.5A5.5 5.5 0 1 0 12.5 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                <path d="M12.5 1.5v3h-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
+              <RefreshCw size={14} strokeWidth={1.5} />
               <span className="text-xs">{orgSummary.lastUpdated}</span>
             </div>
           </div>
@@ -337,10 +630,7 @@ export default function Dashboard() {
             {/* Toolbar */}
             <div className="px-5 py-3.5 flex items-center gap-3 border-b border-gray-100">
               <div className="flex-1 relative">
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="15" height="15" viewBox="0 0 15 15" fill="none">
-                  <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" strokeWidth="1.4"/>
-                  <path d="M10 10L13.5 13.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-                </svg>
+                <Search size={15} strokeWidth={1.4} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search scans by name or type..."
@@ -350,55 +640,149 @@ export default function Dashboard() {
                   style={{ fontFamily: 'Outfit, sans-serif' }}
                 />
               </div>
-              <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-600 hover:border-gray-300 transition-colors cursor-pointer">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 3h12M3 7h8M5 11h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
-                Filter
-              </button>
-              <button className="flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-gray-600 hover:border-gray-300 transition-colors cursor-pointer">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <rect x="1" y="1" width="4" height="4" rx="0.8" stroke="currentColor" strokeWidth="1.4"/>
-                  <rect x="9" y="1" width="4" height="4" rx="0.8" stroke="currentColor" strokeWidth="1.4"/>
-                  <rect x="1" y="9" width="4" height="4" rx="0.8" stroke="currentColor" strokeWidth="1.4"/>
-                  <rect x="9" y="9" width="4" height="4" rx="0.8" stroke="currentColor" strokeWidth="1.4"/>
-                </svg>
-                Column
+              <div className="relative" ref={filterRef}>
+                <button
+                  onClick={() => setFilterOpen(o => !o)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer
+                    ${filterOpen || activeFilterCount > 0
+                      ? 'border-[#0CC8A8] bg-[#e6faf7] text-[#0CC8A8]'
+                      : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'}`}
+                >
+                  <Filter size={14} strokeWidth={1.5} />
+                  Filter
+                  {activeFilterCount > 0 && (
+                    <span className="w-4 h-4 rounded-full bg-[#0CC8A8] text-white text-[10px] font-bold flex items-center justify-center">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
+
+                {filterOpen && (
+                  <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-4 flex flex-col gap-4">
+                    {/* Status filter */}
+                    <div>
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Status</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {['', 'Completed', 'Scheduled', 'Failed'].map(s => (
+                          <button
+                            key={s || 'all-status'}
+                            onClick={() => setFilterStatus(s)}
+                            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors cursor-pointer
+                              ${ filterStatus === s
+                                ? 'bg-[#0CC8A8] text-white border-[#0CC8A8]'
+                                : 'bg-white text-gray-500 border-gray-200 hover:border-[#0CC8A8] hover:text-[#0CC8A8]' }`}
+                          >
+                            {s || 'All'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Type filter */}
+                    <div>
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Type</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {['', 'Greybox', 'Blackbox', 'Whitebox'].map(t => (
+                          <button
+                            key={t || 'all-type'}
+                            onClick={() => setFilterType(t)}
+                            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors cursor-pointer
+                              ${ filterType === t
+                                ? 'bg-[#0CC8A8] text-white border-[#0CC8A8]'
+                                : 'bg-white text-gray-500 border-gray-200 hover:border-[#0CC8A8] hover:text-[#0CC8A8]' }`}
+                          >
+                            {t || 'All'}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Clear */}
+                    {activeFilterCount > 0 && (
+                      <button
+                        onClick={() => { setFilterStatus(''); setFilterType(''); }}
+                        className="text-xs text-[#dc2626] font-medium hover:underline text-left cursor-pointer"
+                      >
+                        Clear all filters
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={() => setViewMode(v => v === 'row' ? 'column' : 'row')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer
+                  ${viewMode === 'column'
+                    ? 'border-[#0CC8A8] bg-[#e6faf7] text-[#0CC8A8]'
+                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'}`}
+              >
+                {viewMode === 'column'
+                  ? <List size={14} strokeWidth={1.5} />
+                  : <Columns size={14} strokeWidth={1.5} />
+                }
+                {viewMode === 'column' ? 'Row' : 'Column'}
               </button>
               <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#0CC8A8] text-sm font-semibold text-white hover:bg-[#0ab597] transition-colors cursor-pointer border-none">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="white" strokeWidth="1.8" strokeLinecap="round"/></svg>
+                <Plus size={14} strokeWidth={1.8} />
                 New scan
               </button>
             </div>
 
-            {/* Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-100">
-                    {['Scan Name', 'Type', 'Status', 'Progress', 'Vulnerability', 'Last Scan'].map(col => (
-                      <th key={col} className="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide whitespace-nowrap">
-                        {col}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map(scan => (
-                    <tr
-                      key={scan.id}
-                      onClick={() => handleRowClick(scan.id)}
-                      className="border-b border-gray-50 cursor-pointer transition-colors hover:bg-[#f0fdf9]"
-                    >
-                      <td className="px-5 py-3.5 font-medium text-[#1a1a1a]">{scan.name}</td>
-                      <td className="px-5 py-3.5 text-gray-500">{scan.type}</td>
-                      <td className="px-5 py-3.5"><StatusChip status={scan.status} /></td>
-                      <td className="px-5 py-3.5"><ProgressBar value={scan.progress} /></td>
-                      <td className="px-5 py-3.5"><VulnBadges v={scan.vulnerabilities} /></td>
-                      <td className="px-5 py-3.5 text-gray-400 text-xs">{scan.lastScan}</td>
+            {/* Table / Card view */}
+            {viewMode === 'row' ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100">
+                      {['Scan Name', 'Type', 'Status', 'Progress', 'Vulnerability', 'Last Scan'].map(col => (
+                        <th key={col} className="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide whitespace-nowrap">
+                          {col}
+                        </th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {filtered.map(scan => (
+                      <tr
+                        key={scan.id}
+                        onClick={() => handleRowClick(scan.id)}
+                        className="border-b border-gray-50 cursor-pointer transition-colors hover:bg-[#f0fdf9]"
+                      >
+                        <td className="px-5 py-3.5 font-medium text-[#1a1a1a]">{scan.name}</td>
+                        <td className="px-5 py-3.5 text-gray-500">{scan.type}</td>
+                        <td className="px-5 py-3.5"><StatusChip status={scan.status} /></td>
+                        <td className="px-5 py-3.5"><ProgressBar value={scan.progress} /></td>
+                        <td className="px-5 py-3.5"><VulnBadges v={scan.vulnerabilities} /></td>
+                        <td className="px-5 py-3.5 text-gray-400 text-xs">{scan.lastScan}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="p-5 grid grid-cols-2 gap-4 xl:grid-cols-3">
+                {filtered.map(scan => (
+                  <div
+                    key={scan.id}
+                    onClick={() => handleRowClick(scan.id)}
+                    className="border border-gray-100 rounded-xl p-4 cursor-pointer hover:border-[#0CC8A8] hover:shadow-sm transition-all flex flex-col gap-3"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="font-semibold text-[#1a1a1a] text-sm">{scan.name}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{scan.type}</p>
+                      </div>
+                      <StatusChip status={scan.status} />
+                    </div>
+                    <ProgressBar value={scan.progress} />
+                    <div className="flex items-center justify-between">
+                      <VulnBadges v={scan.vulnerabilities} />
+                      <span className="text-[11px] text-gray-400">{scan.lastScan}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Footer */}
             <div className="px-5 py-3 flex items-center justify-between text-xs text-gray-400 border-t border-gray-100">
@@ -413,6 +797,8 @@ export default function Dashboard() {
               </div>
             </div>
           </div>
+
+          </>}{/* end dashboard view */}
 
         </div>
       </div>

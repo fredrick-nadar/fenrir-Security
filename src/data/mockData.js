@@ -20,8 +20,9 @@ const completed = (id, name, type, vulnerabilities, lastScan) => ({
   id, name, type, status: "Completed", progress: 100, vulnerabilities, lastScan,
 });
 
-const scheduled = (id, name, type, vulnerabilities, lastScan) => ({
-  id, name, type, status: "Scheduled", progress: 100, vulnerabilities, lastScan,
+const zeroVuln  = { critical: 0, high: 0, medium: 0, low: 0 };
+const scheduled = (id, name, type) => ({
+  id, name, type, status: "Scheduled", progress: 0, vulnerabilities: zeroVuln, lastScan: "-",
 });
 
 const failed = (id, name, type, progress, vulnerabilities, lastScan) => ({
@@ -30,7 +31,6 @@ const failed = (id, name, type, progress, vulnerabilities, lastScan) => ({
 
 // ─── Reusable Vuln Sets ──────────────────────────────────────────────────────
 const fullVuln  = { critical: 5,  high: 12, medium: 23, low: 18 };
-const sched2    = { critical: 5,  high: 12, medium: 0,  low: 0  };
 const failVuln  = { critical: 2,  high: 4,  medium: 8,  low: 1  };
 const apiVuln   = { critical: 3,  high: 9,  medium: 14, low: 7  };
 const dbVuln    = { critical: 7,  high: 15, medium: 20, low: 10 };
@@ -44,13 +44,13 @@ const baseScans = [
   completed(5,  "Web App Servers",  "Greybox",  fullVuln, "4d ago"),
   completed(6,  "Web App Servers",  "Greybox",  fullVuln, "4d ago"),
   completed(7,  "Web App Servers",  "Greybox",  fullVuln, "4d ago"),
-  scheduled(8,  "Web App Servers",  "Greybox",  sched2,   "4d ago"),
-  scheduled(9,  "Web App Servers",  "Greybox",  sched2,   "4d ago"),
+  scheduled(8,  "Web App Servers",  "Greybox"),
+  scheduled(9,  "Web App Servers",  "Greybox"),
   failed(10,    "IoT Devices",      "Blackbox", 10, failVuln, "3d ago"),
   failed(11,    "Temp Data",        "Blackbox", 10, failVuln, "3d ago"),
   completed(12, "API Gateway",      "Greybox",  apiVuln,  "2d ago"),
   completed(13, "Database Cluster", "Whitebox", dbVuln,   "1d ago"),
-  scheduled(14, "Mobile Backend",   "Greybox",  sched2,   "5d ago"),
+  scheduled(14, "Mobile Backend",   "Greybox"),
   failed(15,    "Internal Network", "Blackbox", 35, failVuln, "6d ago"),
 ];
 
@@ -85,7 +85,7 @@ const generateScan = (id) => {
   const days   = `${Math.floor(Math.random() * 10) + 1}d ago`;
 
   if (status === "Completed") return completed(id, name, type, vuln, days);
-  if (status === "Scheduled") return scheduled(id, name, type, { ...vuln, medium: 0, low: 0 }, days);
+  if (status === "Scheduled") return scheduled(id, name, type);
   return failed(id, name, type, Math.floor(Math.random() * 60), vuln, days);
 };
 
