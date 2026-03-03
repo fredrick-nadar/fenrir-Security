@@ -2,17 +2,46 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { scans } from '../data/mockData';
 import { useAuth } from '../context/AuthContext';
+import { Timer } from 'lucide-react';
 
 const STEPS = ['Spidering', 'Mapping', 'Testing', 'Validating', 'Reporting'];
 
 const ACTIVITY_LOG = [
-  { time: '09:00:00', text: "I'll begin a systematic penetration test on ", link: 'helpdesk.democorp.com', after: ". Let me start with reconnaissance and enumeration." },
-  { time: '09:01:00', text: "Good! target is online. Now let me perform port scanning to identify running services.", link: null },
-  { time: '09:02:00', text: "Excellent reconnaissance results:", sub: "- helpdesk.democorp.com: Apache httpd 2.4.65 on port 80 (web server)\nLet me probe the web server on target first to understand its structure.", link: null },
-  { time: '09:03:00', text: 'Great! I found a login page for a Help Desk Platform. I can see a useful comment: "TODO: Delete the testing account (test:test)". Let me test this credential. The login redirects to ', link: '/password/test', after: ". Let me follow that path and explore it." },
-  { time: '09:04:00', text: "The POST method is not allowed on /password/test. Let me check what the JavaScript does - it posts to ", link: '#', after: " which means the current page. Let me try a different approach." },
-  { time: '09:05:00', text: "It redirects back to /password/test. Let me check if there's an /api endpoint or look for other paths. Let me also try exploring with the ", link: 'test:test', after: " password directly on other endpoints." },
-  { time: '09:06:00', text: "Great! I can access the dashboard using the ", highlight: "'X-UserId: 10032'", after: " header. The dashboard shows \"Welcome, John Doe\". This suggests an **IDOR vulnerability** - I can access any user's dashboard by just changing the X-UserId header. Let me explore the application...", link: null },
+  { time: '09:00:00', parts: [
+    { t: 'text', v: "I'll begin a systematic penetration test on " },
+    { t: 'teal', v: 'helpdesk.democorp.com' },
+    { t: 'text', v: '. Let me start with reconnaissance and enumeration.' },
+  ]},
+  { time: '09:01:00', parts: [
+    { t: 'text', v: 'Good! target is online. Now let me perform port scanning to identify running services.' },
+  ]},
+  { time: '09:02:00', parts: [
+    { t: 'text', v: 'Excellent reconnaissance results:' },
+  ], sub: '- helpdesk.democorp.com: Apache httpd 2.4.65 on port 80 (web server)\nLet me probe the web server on target first to understand its structure.' },
+  { time: '09:03:00', parts: [
+    { t: 'text', v: 'Great! I found a login page for a Help Desk Platform. I can see a useful comment: ' },
+    { t: 'red',  v: '"TODO: Delete the testing account (test:test)"' },
+    { t: 'text', v: '. Let me test this credential. The login redirects to ' },
+    { t: 'pill', v: '/password/test' },
+    { t: 'text', v: '. Let me follow that path and explore it.' },
+  ]},
+  { time: '09:04:00', parts: [
+    { t: 'text', v: 'The POST method is not allowed on /password/test. Let me check what the JavaScript does - it posts to ' },
+    { t: 'teal', v: "'#'" },
+    { t: 'text', v: ' which means the current page. Let me try a different approach.' },
+  ]},
+  { time: '09:05:00', parts: [
+    { t: 'text', v: "It redirects back to /password/test. Let me check if there's an /api endpoint or look for other paths. Let me also try exploring with the " },
+    { t: 'teal', v: 'test:test' },
+    { t: 'text', v: ' password directly on other endpoints.' },
+  ]},
+  { time: '09:06:00', parts: [
+    { t: 'text',     v: 'Great! I can access the dashboard using the ' },
+    { t: 'chip',     v: "'X-UserId: 10032'" },
+    { t: 'text',     v: ' header. The dashboard shows "Welcome, John Doe". This suggests an ' },
+    { t: 'bold-red', v: '**IDOR vulnerability**' },
+    { t: 'text',     v: " - I can access any user's dashboard by just changing the X-UserId header. Let me explore the application..." },
+  ]},
 ];
 
 const FINDINGS = [
@@ -197,7 +226,7 @@ export default function ScanDetail() {
                   <div className="w-2 h-2 rounded-full bg-[#0CC8A8] animate-pulse" />
                   <span className="text-sm font-semibold text-[#1a1a1a]">Live Scan Console</span>
                   <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-gray-200 text-xs text-gray-400 ml-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#eab308]" />
+                    <Timer size={12} strokeWidth={1.8} className="text-[#eab308]" />
                     Running...
                   </div>
                 </div>
@@ -239,17 +268,17 @@ export default function ScanDetail() {
                   <div className="flex-1 overflow-y-auto px-5 py-4 text-xs text-[#1a1a1a] leading-relaxed space-y-2.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                     {ACTIVITY_LOG.map((entry, i) => (
                       <div key={i}>
-                        <span className="text-gray-400">[{entry.time}] </span>
-                        {entry.text}
-                        {entry.link && (
-                          <span className="bg-[#1a1a1a] text-white px-1.5 py-0.5 rounded text-[10px] mx-0.5">{entry.link}</span>
-                        )}
-                        {entry.highlight && (
-                          <span className="bg-[#dbeafe] text-[#1d4ed8] px-1.5 py-0.5 rounded text-[10px] mx-0.5 font-semibold">{entry.highlight}</span>
-                        )}
-                        {entry.after && <span>{entry.after}</span>}
+                        <span className="text-[#6b7280]">[{entry.time}] </span>
+                        {entry.parts && entry.parts.map((p, j) => {
+                          if (p.t === 'teal')     return <span key={j} className="text-[#0CC8A8]">{p.v}</span>;
+                          if (p.t === 'red')      return <span key={j} className="text-[#ef4444]">{p.v}</span>;
+                          if (p.t === 'bold-red') return <span key={j} className="text-[#ef4444] font-bold">{p.v}</span>;
+                          if (p.t === 'pill')     return <span key={j} className="bg-[#1a1a1a] text-white px-1.5 py-0.5 rounded text-[10px] mx-0.5 inline-block">{p.v}</span>;
+                          if (p.t === 'chip')     return <span key={j} className="bg-[#e6faf7] text-[#0CC8A8] border border-[#0CC8A8]/40 px-1.5 py-0.5 rounded text-[10px] mx-0.5 inline-block font-semibold">{p.v}</span>;
+                          return <span key={j}>{p.v}</span>;
+                        })}
                         {entry.sub && (
-                          <div className="mt-1 ml-4 text-gray-500 whitespace-pre-line">{entry.sub}</div>
+                          <div className="mt-1 ml-2 pl-3 border-l-2 border-gray-200 text-gray-500 whitespace-pre-line">{entry.sub}</div>
                         )}
                       </div>
                     ))}

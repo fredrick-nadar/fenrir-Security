@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { orgSummary, severityStats, scans, totalScans } from '../data/mockData';
-import { LayoutGrid, ClipboardCheck, BarChart3, Calendar, Bell, Settings, Info, Ban, AlertTriangle, Search, SearchAlert, Filter, Columns, Plus, RefreshCw, List, Network, FlaskConical, FileText } from 'lucide-react';
+import { LayoutGrid, ClipboardCheck, BarChart3, Calendar, Bell, Settings, Info, Ban, AlertTriangle, Search, SearchAlert, Filter, Columns, Plus, RefreshCw, List, Network, FlaskConical, FileText, Timer } from 'lucide-react';
 import spideringPng from '../assets/spidering.png';
 import NewScanModal from './NewScanModal';
 import Toast from './Toast';
@@ -128,13 +128,41 @@ const STEPS = ['Spidering', 'Mapping', 'Testing', 'Validating', 'Reporting'];
 const STEP_ICONS = [null, Network, FlaskConical, ClipboardCheck, FileText];
 
 const ACTIVITY_LOG = [
-  { time: '09:00:00', text: "I'll begin a systematic penetration test on ", link: 'helpdesk.democorp.com', after: ". Let me start with reconnaissance and enumeration." },
-  { time: '09:01:00', text: 'Good! target is online. Now let me perform port scanning to identify running services.', link: null },
-  { time: '09:02:00', text: 'Excellent reconnaissance results:', sub: '- helpdesk.democorp.com: Apache httpd 2.4.65 on port 80 (web server)\nLet me probe the web server on target first to understand its structure.', link: null },
-  { time: '09:03:00', text: 'Great! I found a login page for a Help Desk Platform. I can see a useful comment: "TODO: Delete the testing account (test:test)". Let me test this credential. The login redirects to ', link: '/password/test', after: '. Let me follow that path and explore it.' },
-  { time: '09:04:00', text: 'The POST method is not allowed on /password/test. Let me check what the JavaScript does - it posts to ', link: '#', after: ' which means the current page. Let me try a different approach.' },
-  { time: '09:05:00', text: "It redirects back to /password/test. Let me check if there's an /api endpoint or look for other paths. Let me also try exploring with the ", link: 'test:test', after: ' password directly on other endpoints.' },
-  { time: '09:06:00', text: "Great! I can access the dashboard using the ", highlight: "'X-UserId: 10032'", after: " header. The dashboard shows \"Welcome, John Doe\". This suggests an **IDOR vulnerability** - I can access any user's dashboard by just changing the X-UserId header.", link: null },
+  { parts: [
+    { t: 'text', v: "I'll begin a systematic penetration test on " },
+    { t: 'teal', v: 'helpdesk.democorp.com' },
+    { t: 'text', v: '. Let me start with reconnaissance and enumeration.' },
+  ]},
+  { parts: [
+    { t: 'text', v: 'Good! target is online. Now let me perform port scanning to identify running services.' },
+  ]},
+  { parts: [
+    { t: 'text', v: 'Excellent reconnaissance results:' },
+  ], sub: '- helpdesk.democorp.com: Apache httpd 2.4.65 on port 80 (web server)\nLet me probe the web server on target first to understand its structure.' },
+  { parts: [
+    { t: 'text', v: 'Great! I found a login page for a Help Desk Platform. I can see a useful comment: ' },
+    { t: 'red',  v: '"TODO: Delete the testing account (test:test)"' },
+    { t: 'text', v: '. Let me test this credential. The login redirects to ' },
+    { t: 'pill', v: '/password/test' },
+    { t: 'text', v: '. Let me follow that path and explore it.' },
+  ]},
+  { parts: [
+    { t: 'text', v: 'The POST method is not allowed on /password/test. Let me check what the JavaScript does - it posts to ' },
+    { t: 'teal', v: "'#'" },
+    { t: 'text', v: ' which means the current page. Let me try a different approach.' },
+  ]},
+  { parts: [
+    { t: 'text', v: "It redirects back to /password/test. Let me check if there's an /api endpoint or look for other paths. Let me also try exploring with the " },
+    { t: 'teal', v: 'test:test' },
+    { t: 'text', v: ' password directly on other endpoints.' },
+  ]},
+  { parts: [
+    { t: 'text',     v: 'Great! I can access the dashboard using the ' },
+    { t: 'chip',     v: "'X-UserId: 10032'" },
+    { t: 'text',     v: ' header. The dashboard shows "Welcome, John Doe". This suggests an ' },
+    { t: 'bold-red', v: '**IDOR vulnerability**' },
+    { t: 'text',     v: " - I can access any user's dashboard by just changing the X-UserId header." },
+  ]},
 ];
 
 const FINDINGS = [
@@ -167,6 +195,8 @@ export default function Dashboard() {
   const [lastUpdatedLabel, setLastUpdatedLabel] = useState('4 days ago');
   const PAGE_SIZE = 15;
   const filterRef = useRef(null);
+  const scanIntervalRef = useRef(null);
+  const [activeScanId, setActiveScanId] = useState(null);
 
   // Tick the "X mins/secs ago" label every second
   useEffect(() => {
@@ -350,20 +380,38 @@ export default function Dashboard() {
       setSelectedScanId(null);
     }
   };
-  const handleRowClick = () => {};
+  const handleRowClick = (id) => {
+    setScanStartTime(new Date());
+    setSelectedScanId(id);
+    setConsoleOpen(true);
+    setConsoleTab('activity');
+  };
 
   const handleNewScan = (newScan) => {
     const id = Date.now();
     setScanStartTime(new Date());
     setLastScanTime(new Date());
-    setScanList(prev => [{ ...newScan, id }, ...prev]);
-    setToast('Scan initiated successfully');
-    // After 3 seconds, flip status to Completed
-    setTimeout(() => {
+    setScanList(prev => [{ ...newScan, id, status: 'In Progress', progress: 0 }, ...prev]);
+    setToast({ message: 'Scan initiated successfully', type: 'success', duration: 1000 });
+
+    // Clear any previous interval
+    if (scanIntervalRef.current) clearInterval(scanIntervalRef.current);
+    setActiveScanId(id);
+
+    // Gradually increase progress over 10 seconds (tick every 1s, +10% each)
+    let tick = 0;
+    scanIntervalRef.current = setInterval(() => {
+      tick++;
+      const newProgress = Math.min(tick * 10, 100);
       setScanList(prev => prev.map(s =>
-        s.id === id ? { ...s, status: 'Completed', progress: 100 } : s
+        s.id === id ? { ...s, progress: newProgress, ...(newProgress === 100 ? { status: 'Completed' } : {}) } : s
       ));
-    }, 3000);
+      if (newProgress >= 100) {
+        clearInterval(scanIntervalRef.current);
+        scanIntervalRef.current = null;
+        setActiveScanId(null);
+      }
+    }, 1000);
   };
 
   return (
@@ -449,7 +497,23 @@ export default function Dashboard() {
               className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-[#1a1a1a] hover:border-[#0CC8A8] hover:text-[#0CC8A8] transition-colors cursor-pointer">
               Export Report
             </button>
-            <button className="px-4 py-2 rounded-lg bg-[#fee2e2] text-sm font-semibold text-[#dc2626] hover:bg-[#fecaca] transition-colors cursor-pointer border-none">
+            <button
+              disabled={!activeScanId}
+              onClick={() => {
+                if (scanIntervalRef.current) {
+                  clearInterval(scanIntervalRef.current);
+                  scanIntervalRef.current = null;
+                }
+                setToast({ message: 'Scan stopped successfully', type: 'error', duration: 1000 });
+                setScanList(prev => prev.map(s =>
+                  s.id === activeScanId ? { ...s, status: 'Failed', progress: s.progress } : s
+                ));
+                setActiveScanId(null);
+              }}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold border-none transition-colors
+                ${!activeScanId
+                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  : 'bg-[#fee2e2] text-[#dc2626] hover:bg-[#fecaca] cursor-pointer'}`}>
               Stop Scan
             </button>
           </div>
@@ -554,7 +618,7 @@ export default function Dashboard() {
           )}
 
           {/* ── SCAN DETAIL VIEW (inline, shown via Scans nav) ── */}
-          {activeNav === 'scans' && selectedScan && (
+          {selectedScan && (activeNav === 'scans' || activeNav === 'dashboard') && (
             <>
               {/* Back breadcrumb */}
               <div className="flex items-center gap-1.5 text-sm">
@@ -563,7 +627,7 @@ export default function Dashboard() {
                   className="flex items-center gap-1.5 text-gray-400 hover:text-[#0CC8A8] transition-colors cursor-pointer bg-transparent border-none p-0 text-sm"
                 >
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 11L5 7l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  Back to Scans
+                  Back to Dashboard
                 </button>
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 5l3 3-3 3" stroke="#d1d5db" strokeWidth="1.4" strokeLinecap="round"/></svg>
                 <span className="font-semibold text-[#1a1a1a]">{selectedScan.name}</span>
@@ -662,7 +726,7 @@ export default function Dashboard() {
                       <div className="w-2 h-2 rounded-full bg-[#0CC8A8] animate-pulse" />
                       <span className="text-sm font-semibold text-[#1a1a1a]">Live Scan Console</span>
                       <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-gray-200 text-xs text-gray-400 ml-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#eab308]" />
+                        <Timer size={12} strokeWidth={1.8} className="text-[#eab308]" />
                         Running...
                       </div>
                     </div>
@@ -697,12 +761,18 @@ export default function Dashboard() {
                         {consoleTab === 'activity'
                           ? ACTIVITY_LOG.map((entry, i) => (
                               <div key={i}>
-                                <span className="text-gray-400">[{logTime(i)}] </span>
-                                {entry.text}
-                                {entry.link && <span className="bg-[#1a1a1a] text-white px-1.5 py-0.5 rounded text-[10px] mx-0.5">{entry.link}</span>}
-                                {entry.highlight && <span className="bg-[#dbeafe] text-[#1d4ed8] px-1.5 py-0.5 rounded text-[10px] mx-0.5 font-semibold">{entry.highlight}</span>}
-                                {entry.after && <span>{entry.after}</span>}
-                                {entry.sub && <div className="mt-1 ml-4 text-gray-500 whitespace-pre-line">{entry.sub}</div>}
+                                <span className="text-[#6b7280]">[{logTime(i)}] </span>
+                                {entry.parts.map((p, j) => {
+                                  if (p.t === 'teal')     return <span key={j} className="text-[#0CC8A8]">{p.v}</span>;
+                                  if (p.t === 'red')      return <span key={j} className="text-[#ef4444]">{p.v}</span>;
+                                  if (p.t === 'bold-red') return <span key={j} className="text-[#ef4444] font-bold">{p.v}</span>;
+                                  if (p.t === 'pill')     return <span key={j} className="bg-[#1a1a1a] text-white px-1.5 py-0.5 rounded text-[10px] mx-0.5 inline-block">{p.v}</span>;
+                                  if (p.t === 'chip')     return <span key={j} className="bg-[#e6faf7] text-[#0CC8A8] border border-[#0CC8A8]/40 px-1.5 py-0.5 rounded text-[10px] mx-0.5 inline-block font-semibold">{p.v}</span>;
+                                  return <span key={j}>{p.v}</span>;
+                                })}
+                                {entry.sub && (
+                                  <div className="mt-1 ml-2 pl-3 border-l-2 border-gray-200 text-gray-500 whitespace-pre-line">{entry.sub}</div>
+                                )}
                               </div>
                             ))
                           : (
@@ -775,7 +845,7 @@ export default function Dashboard() {
           )}
 
           {/* ── DASHBOARD VIEW ────────────────────────── */}
-          {activeNav === 'dashboard' && <>
+          {activeNav === 'dashboard' && !selectedScan && <>
 
           {/* Org Summary Bar */}
           <div className="bg-white rounded-xl border border-gray-100 px-6 py-3.5 flex items-center text-sm">
@@ -948,8 +1018,7 @@ export default function Dashboard() {
                     {paginated.map(scan => (
                       <tr
                         key={scan.id}
-                        onClick={() => handleRowClick(scan.id)}
-                        className="border-b border-gray-50 cursor-pointer transition-colors hover:bg-[#f0fdf9]"
+                        className="border-b border-gray-50 last:border-0 hover:bg-[#f0fdf9] transition-colors"
                       >
                         <td className="px-5 py-3.5 font-medium text-[#1a1a1a]">{scan.name}</td>
                         <td className="px-5 py-3.5 text-gray-500">{scan.type}</td>
@@ -967,8 +1036,7 @@ export default function Dashboard() {
                 {paginated.map(scan => (
                   <div
                     key={scan.id}
-                    onClick={() => handleRowClick(scan.id)}
-                    className="border border-gray-100 rounded-xl p-4 cursor-pointer hover:border-[#0CC8A8] hover:shadow-sm transition-all flex flex-col gap-3"
+                    className="border border-gray-100 rounded-xl p-4 transition-all flex flex-col gap-3 hover:border-[#0CC8A8]"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
@@ -1025,8 +1093,9 @@ export default function Dashboard() {
       {/* ── TOAST ── */}
       {toast && (
         <Toast
-          message={toast}
-          type="success"
+          message={toast.message}
+          type={toast.type}
+          duration={toast.duration}
           onClose={() => setToast(null)}
         />
       )}

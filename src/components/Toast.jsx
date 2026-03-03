@@ -1,15 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
-export default function Toast({ message, type = 'success', onClose }) {
+export default function Toast({ message, type = 'success', duration = 3000, onClose }) {
   const [visible, setVisible] = useState(true);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setVisible(false);
-      setTimeout(onClose, 300);
-    }, 3000);
+      setTimeout(() => onCloseRef.current?.(), 300);
+    }, duration);
     return () => clearTimeout(timer);
-  }, [onClose]);
+  }, [duration]);
 
   const bg = type === 'success' ? 'bg-[#0e9e9e]' : 'bg-red-500';
 
