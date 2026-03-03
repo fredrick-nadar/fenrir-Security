@@ -528,8 +528,9 @@ export default function Dashboard() {
           <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
             <button
               onClick={handleExportPDF}
-              className="hidden sm:flex px-4 py-2 rounded-lg border border-gray-200 dark:border-[#2d3448] bg-white dark:bg-transparent text-sm font-medium text-[#1a1a1a] dark:text-[#e8ecf5] hover:border-[#0CC8A8] hover:text-[#0CC8A8] transition-colors cursor-pointer">
-              Export Report
+              className="flex items-center gap-1.5 px-3 md:px-4 py-2 rounded-lg border border-gray-200 dark:border-[#2d3448] bg-white dark:bg-transparent text-sm font-medium text-[#1a1a1a] dark:text-[#e8ecf5] hover:border-[#0CC8A8] hover:text-[#0CC8A8] transition-colors cursor-pointer">
+              <FileText size={15} strokeWidth={1.5} className="sm:hidden" />
+              <span className="hidden sm:inline">Export Report</span>
             </button>
             <button
               onClick={() => setIsDark(d => !d)}
@@ -696,7 +697,7 @@ export default function Dashboard() {
                         const Icon = STEP_ICONS[i];
                         const active = i === 0;
                         return (
-                          <div key={step} className="flex items-center flex-1">
+                          <div key={step} className="flex items-center flex-1 min-w-[70px]">
                             <div className="flex flex-col items-center flex-1">
                               {active ? (
                                 <div className="relative flex items-center justify-center mb-1.5">
@@ -888,24 +889,26 @@ export default function Dashboard() {
           {activeNav === 'dashboard' && !selectedScan && <>
 
           {/* Org Summary Bar */}
-          <div className="bg-white dark:bg-[#161b27] rounded-xl border border-gray-100 dark:border-[#212637] px-4 md:px-6 py-3.5 flex flex-wrap items-center gap-y-2 text-sm">
-            {[
-              { label: 'Org',          value: orgSummary.orgName },
-              { label: 'Owner',        value: orgSummary.owner },
-              { label: 'Total Scans',  value: orgSummary.totalScans },
-              { label: 'Scheduled',    value: orgSummary.scheduled },
-              { label: 'Rescans',      value: orgSummary.rescans },
-              { label: 'Failed Scans', value: orgSummary.failedScans },
-            ].map((item, i, arr) => (
-              <div
-                key={item.label}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-0.5 ${i < arr.length - 1 ? 'border-r border-gray-200 dark:border-[#212637]' : ''}`}
-              >
-                <span className="text-gray-400 dark:text-[#8891a8]">{item.label}:</span>
-                <span className="font-semibold text-[#1a1a1a] dark:text-[#e8ecf5]">{item.value}</span>
-              </div>
-            ))}
-            <div className="flex items-center gap-1.5 text-gray-400 dark:text-[#8891a8] pl-5 ml-4 border-l border-gray-200 dark:border-[#212637] whitespace-nowrap">
+          <div className="bg-white dark:bg-[#161b27] rounded-xl border border-gray-100 dark:border-[#212637] px-4 md:px-6 py-3.5">
+            <div className="grid grid-cols-3 md:flex md:items-center gap-3 md:gap-0 text-sm">
+              {[
+                { label: 'Org',          value: orgSummary.orgName },
+                { label: 'Owner',        value: orgSummary.owner },
+                { label: 'Total Scans',  value: orgSummary.totalScans },
+                { label: 'Scheduled',    value: orgSummary.scheduled },
+                { label: 'Rescans',      value: orgSummary.rescans },
+                { label: 'Failed Scans', value: orgSummary.failedScans },
+              ].map((item, i, arr) => (
+                <div
+                  key={item.label}
+                  className={`md:flex-1 flex flex-col md:flex-row items-start md:items-center md:justify-center gap-0.5 md:gap-1.5 py-1 md:py-0.5 ${i < arr.length - 1 ? 'md:border-r md:border-gray-200 md:dark:border-[#212637]' : ''}`}
+                >
+                  <span className="text-[11px] md:text-sm text-gray-400 dark:text-[#8891a8]">{item.label}</span>
+                  <span className="font-semibold text-sm md:text-sm text-[#1a1a1a] dark:text-[#e8ecf5]">{item.value}</span>
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center gap-1.5 text-gray-400 dark:text-[#8891a8] mt-2 md:mt-0 pt-2 md:pt-0 border-t md:border-t-0 md:border-l border-gray-200 dark:border-[#212637] md:pl-5 md:ml-4 whitespace-nowrap">
               <RefreshCw size={14} strokeWidth={1.5} />
               <span className="text-xs">{lastUpdatedLabel}</span>
             </div>
