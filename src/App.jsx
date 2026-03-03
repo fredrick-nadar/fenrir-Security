@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import SignUp from './components/SignUp';
 import Login from './components/Login';
 import Dashboard from './components/Dashboard';
+import ScanDetail from './components/ScanDetail';
 import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
@@ -15,6 +16,14 @@ function App() {
         element={
           <ProtectedRoute>
             <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/scans/:id"
+        element={
+          <ProtectedRoute>
+            <ScanDetail />
           </ProtectedRoute>
         }
       />
