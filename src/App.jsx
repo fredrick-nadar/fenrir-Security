@@ -4,7 +4,7 @@ import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import ScanDetail from './components/ScanDetail';
 import ProtectedRoute from './components/ProtectedRoute';
-import './App.css';
+import './index.css';
 
 function App() {
   return (
