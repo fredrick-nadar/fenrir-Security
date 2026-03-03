@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { orgSummary, severityStats, scans, totalScans } from '../data/mockData';
 import { LayoutGrid, ClipboardCheck, BarChart3, Calendar, Bell, Settings, Info, Ban, AlertTriangle, Search, Filter, Columns, Plus, RefreshCw, List } from 'lucide-react';
+import NewScanModal from './NewScanModal';
+import Toast from './Toast';
 
 // ─── Sidebar nav items ────────────────────────────────────────────────────────
 const NAV_TOP = [
@@ -151,9 +153,12 @@ export default function Dashboard() {
   const [selectedScanId, setSelectedScanId] = useState(null);
   const [consoleTab, setConsoleTab]         = useState('activity');
   const [consoleOpen, setConsoleOpen]       = useState(true);
+  const [scanList, setScanList]             = useState(scans);
+  const [isModalOpen, setIsModalOpen]       = useState(false);
+  const [toast, setToast]                   = useState(null);
   const filterRef = useRef(null);
 
-  const selectedScan = selectedScanId != null ? scans.find(s => s.id === selectedScanId) : null;
+  const selectedScan = selectedScanId != null ? scanList.find(s => s.id === selectedScanId) : null;
 
   // Close filter dropdown when clicking outside
   useEffect(() => {
@@ -167,14 +172,14 @@ export default function Dashboard() {
   }, []);
 
   const filtered = useMemo(() => {
-    return scans.filter(s => {
+    return scanList.filter(s => {
       const q = search.toLowerCase();
       const matchSearch = !q || s.name.toLowerCase().includes(q) || s.type.toLowerCase().includes(q);
       const matchStatus = !filterStatus || s.status === filterStatus;
       const matchType   = !filterType   || s.type   === filterType;
       return matchSearch && matchStatus && matchType;
     });
-  }, [search, filterStatus, filterType]);
+  }, [scanList, search, filterStatus, filterType]);
 
   const activeFilterCount = (filterStatus ? 1 : 0) + (filterType ? 1 : 0);
 
@@ -182,16 +187,26 @@ export default function Dashboard() {
   const handleNavClick = (item) => {
     setActiveNav(item.key);
     if (item.key === 'scans') {
-      // Show first scan in the console by default
-      setSelectedScanId(scans[0].id);
+      setSelectedScanId(scanList[0].id);
       setConsoleOpen(true);
       setConsoleTab('activity');
     } else {
       setSelectedScanId(null);
     }
   };
-  // Row click does nothing — detail is accessed via the Scans nav button
   const handleRowClick = () => {};
+
+  const handleNewScan = (newScan) => {
+    const id = Date.now();
+    setScanList(prev => [{ ...newScan, id }, ...prev]);
+    setToast('Scan initiated successfully');
+    // After 3 seconds, flip status to Completed
+    setTimeout(() => {
+      setScanList(prev => prev.map(s =>
+        s.id === id ? { ...s, status: 'Completed', progress: 100 } : s
+      ));
+    }, 3000);
+  };
 
   return (
     <div className="flex h-screen bg-[#f8fafc] overflow-hidden" style={{ fontFamily: 'Outfit, sans-serif' }}>
@@ -348,7 +363,7 @@ export default function Dashboard() {
                           <td className="px-5 py-3.5 text-gray-500">{scan.type}</td>
                           <td className="px-5 py-3.5"><StatusChip status={scan.status} /></td>
                           <td className="px-5 py-3.5"><ProgressBar value={scan.progress} /></td>
-                          <td className="px-5 py-3.5"><VulnBadges v={scan.vulnerabilities} /></td>
+                          <td className="px-5 py-3.5 text-gray-400 text-xs font-medium">N/A</td>
                           <td className="px-5 py-3.5 text-gray-400 text-xs">{scan.lastScan}</td>
                         </tr>
                       ))}
@@ -434,20 +449,24 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center mt-6 pt-5 border-t border-gray-100 text-sm flex-wrap gap-y-2">
+                <div className="flex items-stretch mt-6 pt-5 border-t border-gray-100 text-sm">
                   {[
                     { label: 'Scan Type',   value: selectedScan.type },
                     { label: 'Status',      value: selectedScan.status },
                     { label: 'Last Scan',   value: selectedScan.lastScan },
                     { label: 'Credentials', value: '2 Active' },
                     { label: 'Checklists',  value: '40/350', accent: true },
-                  ].map((item, i) => (
-                    <div key={item.label} className="flex items-center">
-                      {i > 0 && <div className="w-px h-8 bg-gray-100 mx-6" />}
-                      <div className="flex flex-col">
-                        <span className="text-[11px] text-gray-400 mb-0.5">{item.label}</span>
-                        <span className={`font-semibold text-sm ${item.accent ? 'text-[#0CC8A8]' : 'text-[#1a1a1a]'}`}>{item.value}</span>
-                      </div>
+                  ].map((item, i, arr) => (
+                    <div
+                      key={item.label}
+                      className={`flex-1 flex flex-col items-center justify-center py-1 ${
+                        i < arr.length - 1 ? 'border-r border-gray-100' : ''
+                      }`}
+                    >
+                      <span className="text-[11px] text-gray-400 mb-0.5">{item.label}</span>
+                      <span className={`font-semibold text-sm ${
+                        item.accent ? 'text-[#0CC8A8]' : 'text-[#1a1a1a]'
+                      }`}>{item.value}</span>
                     </div>
                   ))}
                 </div>
@@ -722,7 +741,9 @@ export default function Dashboard() {
                 }
                 {viewMode === 'column' ? 'Row' : 'Column'}
               </button>
-              <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#0CC8A8] text-sm font-semibold text-white hover:bg-[#0ab597] transition-colors cursor-pointer border-none">
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#0CC8A8] text-sm font-semibold text-white hover:bg-[#0ab597] transition-colors cursor-pointer border-none">
                 <Plus size={14} strokeWidth={1.8} />
                 New scan
               </button>
@@ -802,6 +823,22 @@ export default function Dashboard() {
 
         </div>
       </div>
+
+      {/* ── NEW SCAN MODAL ── */}
+      <NewScanModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleNewScan}
+      />
+
+      {/* ── TOAST ── */}
+      {toast && (
+        <Toast
+          message={toast}
+          type="success"
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }
