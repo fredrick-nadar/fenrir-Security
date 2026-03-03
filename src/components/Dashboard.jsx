@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { orgSummary, severityStats, scans, totalScans } from '../data/mockData';
-import { LayoutGrid, ClipboardCheck, BarChart3, Calendar, Bell, Settings, Info, Ban, AlertTriangle, Search, SearchAlert, Filter, Columns, Plus, RefreshCw, List, Network, FlaskConical, FileText, Timer, Moon, Sun } from 'lucide-react';
+import { LayoutGrid, ClipboardCheck, BarChart3, Calendar, Bell, Settings, Info, Ban, AlertTriangle, Search, SearchAlert, Filter, Columns, Plus, RefreshCw, List, Network, FlaskConical, FileText, Timer, Moon, Sun, Menu, X } from 'lucide-react';
 import spideringPng from '../assets/Spidering.png';
 import NewScanModal from './NewScanModal';
 import Toast from './Toast';
@@ -198,6 +198,7 @@ export default function Dashboard() {
   const scanIntervalRef = useRef(null);
   const [activeScanId, setActiveScanId] = useState(null);
   const [isDark, setIsDark] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Tick the "X mins/secs ago" label every second
   useEffect(() => {
@@ -376,6 +377,7 @@ export default function Dashboard() {
 
   const handleNavClick = (item) => {
     setActiveNav(item.key);
+    setSidebarOpen(false);
     if (item.key === 'scans') {
       setScanStartTime(new Date());
       setSelectedScanId(scanList[0].id);
@@ -422,8 +424,13 @@ export default function Dashboard() {
   return (
     <div className="flex h-screen bg-[#f8fafc] dark:bg-[#0d1117] overflow-hidden" style={{ fontFamily: 'Outfit, sans-serif' }}>
 
+      {/* ── MOBILE SIDEBAR OVERLAY ── */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/40 z-40 md:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+
       {/* ── SIDEBAR ─────────────────────────────────────────────────────── */}
-      <aside className="w-[200px] flex-shrink-0 bg-white dark:bg-[#161922] border-r border-gray-100 dark:border-[#212637] flex flex-col h-full">
+      <aside className={`fixed md:static inset-y-0 left-0 z-50 w-[220px] md:w-[200px] flex-shrink-0 bg-white dark:bg-[#161922] border-r border-gray-100 dark:border-[#212637] flex flex-col h-full transform transition-transform duration-200 ease-in-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
         {/* Logo */}
         <div className="px-5 py-5 flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-[#0CC8A8] flex items-center justify-center">
@@ -468,7 +475,7 @@ export default function Dashboard() {
 
           {/* Logout */}
           <button
-            onClick={handleLogout}
+            onClick={() => { handleLogout(); setSidebarOpen(false); }}
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer border-none transition-colors w-full text-left bg-transparent text-[#ef4444] hover:bg-[#fee2e2] dark:hover:bg-[#2d1010] hover:text-[#dc2626]"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -501,18 +508,27 @@ export default function Dashboard() {
 <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f8fafc] dark:bg-[#0d1117]">
 
         {/* Top Header */}
-        <header className="bg-white dark:bg-[#161922] border-b border-gray-100 dark:border-[#212637] px-7 py-3.5 flex items-center justify-between flex-shrink-0">
-          <div className="flex items-center gap-1.5 text-sm text-gray-400">
-            <span className="font-medium text-[#1a1a1a] dark:text-[#e8ecf5]">Scan</span>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 5l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
-            <span>Private Assets</span>
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 5l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
-            <span className="text-[#0CC8A8] font-medium">New Scan</span>
+        <header className="bg-white dark:bg-[#161922] border-b border-gray-100 dark:border-[#212637] px-4 md:px-7 py-3.5 flex items-center justify-between flex-shrink-0 gap-3">
+          <div className="flex items-center gap-2">
+            {/* Hamburger for mobile */}
+            <button
+              onClick={() => setSidebarOpen(o => !o)}
+              className="md:hidden p-1.5 rounded-lg text-gray-500 dark:text-[#8891a8] hover:bg-gray-100 dark:hover:bg-[#1c2234] transition-colors cursor-pointer border-none bg-transparent"
+            >
+              <Menu size={20} strokeWidth={1.5} />
+            </button>
+            <div className="hidden sm:flex items-center gap-1.5 text-sm text-gray-400">
+              <span className="font-medium text-[#1a1a1a] dark:text-[#e8ecf5]">Scan</span>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 5l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+              <span>Private Assets</span>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 5l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
+              <span className="text-[#0CC8A8] font-medium">New Scan</span>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
             <button
               onClick={handleExportPDF}
-              className="px-4 py-2 rounded-lg border border-gray-200 dark:border-[#2d3448] bg-white dark:bg-transparent text-sm font-medium text-[#1a1a1a] dark:text-[#e8ecf5] hover:border-[#0CC8A8] hover:text-[#0CC8A8] transition-colors cursor-pointer">
+              className="hidden sm:flex px-4 py-2 rounded-lg border border-gray-200 dark:border-[#2d3448] bg-white dark:bg-transparent text-sm font-medium text-[#1a1a1a] dark:text-[#e8ecf5] hover:border-[#0CC8A8] hover:text-[#0CC8A8] transition-colors cursor-pointer">
               Export Report
             </button>
             <button
@@ -544,7 +560,7 @@ export default function Dashboard() {
         </header>
 
         {/* Scrollable body */}
-        <div className="flex-1 overflow-y-auto px-7 py-5 flex flex-col gap-5">
+        <div className="flex-1 overflow-y-auto px-4 md:px-7 py-5 flex flex-col gap-5">
 
           {/* ── PROJECTS VIEW ─────────────────────────── */}
           {activeNav === 'projects' && (
@@ -556,7 +572,7 @@ export default function Dashboard() {
                   New Project
                 </button>
               </div>
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Project Card */}
                 <div className="bg-white dark:bg-[#161b27] rounded-xl border border-gray-100 dark:border-[#212637] p-5 flex flex-col gap-3 hover:border-[#0CC8A8] hover:shadow-sm transition-all cursor-pointer">
                   <div className="flex items-center justify-between">
@@ -658,8 +674,8 @@ export default function Dashboard() {
               </div>
 
               {/* Progress card */}
-              <div className="bg-white dark:bg-[#161b27] rounded-xl border border-gray-100 dark:border-[#212637] p-6">
-                <div className="flex items-center gap-8">
+              <div className="bg-white dark:bg-[#161b27] rounded-xl border border-gray-100 dark:border-[#212637] p-4 md:p-6">
+                <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
                   <div className="flex-shrink-0 w-24 h-24 relative">
                     <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
                       <circle cx="50" cy="50" r="42" fill="none" stroke={isDark ? '#1e2535' : '#f3f4f6'} strokeWidth="10"/>
@@ -674,8 +690,8 @@ export default function Dashboard() {
                       <span className="text-[10px] text-gray-400 mt-0.5">In Progress</span>
                     </div>
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-0">
+                  <div className="flex-1 w-full">
+                    <div className="flex items-center gap-0 overflow-x-auto pb-2">
                       {STEPS.map((step, i) => {
                         const Icon = STEP_ICONS[i];
                         const active = i === 0;
@@ -719,7 +735,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-stretch mt-6 pt-5 border-t border-gray-100 dark:border-[#212637] text-sm">
+                <div className="flex flex-wrap items-stretch mt-6 pt-5 border-t border-gray-100 dark:border-[#212637] text-sm gap-y-3">
                   {[
                     { label: 'Scan Type',   value: selectedScan.type },
                     { label: 'Status',      value: 'In Progress' },
@@ -759,9 +775,9 @@ export default function Dashboard() {
                     </button>
                   </div>
 
-                  <div className="flex" style={{ height: '360px' }}>
+                  <div className="flex flex-col md:flex-row" style={{ minHeight: '300px' }}>
                     {/* Activity / Verification panel — 60% */}
-                    <div className="flex flex-col border-r border-gray-100 dark:border-[#212637] min-w-0" style={{ width: '60%' }}>
+                    <div className="flex flex-col border-b md:border-b-0 md:border-r border-gray-100 dark:border-[#212637] min-w-0 w-full md:w-[60%]" style={{ minHeight: '200px' }}>
                       <div className="flex border-b border-gray-100 dark:border-[#212637] px-4 pt-2">
                         {['Activity Log', 'Verification Loops'].map(tab => {
                           const key = tab === 'Activity Log' ? 'activity' : 'verification';
@@ -822,7 +838,7 @@ export default function Dashboard() {
                     </div>
 
                     {/* Finding Log — 40% */}
-                    <div className="flex flex-col min-w-0" style={{ width: '40%' }}>
+                    <div className="flex flex-col min-w-0 w-full md:w-[40%]" style={{ minHeight: '200px' }}>
                       <div className="px-4 py-3 border-b border-gray-100 dark:border-[#212637]">
                         <span className="text-xs font-semibold text-[#1a1a1a] dark:text-[#e8ecf5]">Finding Log</span>
                       </div>
@@ -842,7 +858,7 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="px-5 py-2 border-t border-gray-100 dark:border-[#212637] flex items-center gap-6 text-[11px] text-gray-400 dark:text-[#8891a8]">
+                  <div className="px-4 md:px-5 py-2 border-t border-gray-100 dark:border-[#212637] flex flex-wrap items-center gap-3 md:gap-6 text-[11px] text-gray-400 dark:text-[#8891a8]">
                     <span>Sub-Agents: 0</span>
                     <span>Parallel Executions: 2</span>
                     <span>Operations: 1</span>
@@ -872,7 +888,7 @@ export default function Dashboard() {
           {activeNav === 'dashboard' && !selectedScan && <>
 
           {/* Org Summary Bar */}
-          <div className="bg-white dark:bg-[#161b27] rounded-xl border border-gray-100 dark:border-[#212637] px-6 py-3.5 flex items-center text-sm">
+          <div className="bg-white dark:bg-[#161b27] rounded-xl border border-gray-100 dark:border-[#212637] px-4 md:px-6 py-3.5 flex flex-wrap items-center gap-y-2 text-sm">
             {[
               { label: 'Org',          value: orgSummary.orgName },
               { label: 'Owner',        value: orgSummary.owner },
@@ -896,7 +912,7 @@ export default function Dashboard() {
           </div>
 
           {/* Severity Cards */}
-          <div className="grid grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {severityStats.map(stat => {
               const cfg = severityConfig[stat.id];
               return (
@@ -923,7 +939,7 @@ export default function Dashboard() {
           {/* Table Card */}
           <div className="bg-white dark:bg-[#161b27] rounded-xl border border-gray-100 dark:border-[#212637] flex flex-col">
             {/* Toolbar */}
-            <div className="px-5 py-3.5 flex items-center gap-3 border-b border-gray-100 dark:border-[#212637]">
+            <div className="px-4 md:px-5 py-3.5 flex flex-wrap items-center gap-3 border-b border-gray-100 dark:border-[#212637]">
               <div className="flex-1 relative">
                 <Search size={15} strokeWidth={1.4} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
@@ -1056,7 +1072,7 @@ export default function Dashboard() {
                 </table>
               </div>
             ) : (
-              <div className="p-5 grid grid-cols-2 gap-4 xl:grid-cols-3">
+              <div className="p-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 {paginated.map(scan => (
                   <div
                     key={scan.id}
@@ -1080,7 +1096,7 @@ export default function Dashboard() {
             )}
 
             {/* Footer */}
-            <div className="px-5 py-3 flex items-center justify-between text-xs text-gray-400 dark:text-[#8891a8] border-t border-gray-100 dark:border-[#212637]">
+            <div className="px-4 md:px-5 py-3 flex flex-wrap items-center justify-between gap-2 text-xs text-gray-400 dark:text-[#8891a8] border-t border-gray-100 dark:border-[#212637]">
               <span>
                 Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filtered.length)} of {filtered.length} Scans
               </span>
