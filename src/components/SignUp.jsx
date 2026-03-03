@@ -5,6 +5,9 @@ import googleLogo from '../assets/google.png';
 import metaLogo from '../assets/meta.png';
 import openEye from '../assets/open_eye.png';
 import closeEye from '../assets/close_eye.png';
+import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
+import IconButton from '@mui/material/IconButton';
 
 function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
@@ -23,6 +26,25 @@ function SignUp() {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Form submitted:', form);
+  };
+
+  const fieldSx = {
+    mb: 1,
+    '& .MuiOutlinedInput-root': {
+      fontFamily: 'Outfit, sans-serif',
+      fontSize: '15px',
+      color: '#342d2d',
+      borderRadius: '10px',
+      '& fieldset': { borderColor: '#dddddd' },
+      '&:hover fieldset': { borderColor: '#0e9e9e' },
+      '&.Mui-focused fieldset': { borderColor: '#0e9e9e' },
+    },
+    '& .MuiInputLabel-root': {
+      fontFamily: 'Outfit, sans-serif',
+      color: '#9e9e9e',
+      fontSize: '14px',
+      '&.Mui-focused': { color: '#0e9e9e' },
+    },
   };
 
   return (
@@ -111,72 +133,87 @@ function SignUp() {
             <a href="#" className="text-[#0e9e9e] underline font-medium hover:underline">Log in</a>
           </p>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
             {/* First Name */}
-            <div className="mb-4">
-              <input
-                type="text"
+            <div className="mb-2">
+              <TextField
+                fullWidth
+                label="First name"
                 id="firstName"
-                placeholder='First name*'
                 name="firstName"
                 value={form.firstName}
                 onChange={handleChange}
                 required
-                className="w-full h-12 px-3.5 border border-[#dddddd] rounded-[10px] bg-white text-[15px] text-[#342d2d] outline-none font-[Outfit,sans-serif] transition-colors focus:border-[#0e9e9e]"
+                variant="outlined"
+                size="small"
+                sx={fieldSx}
               />
             </div>
 
             {/* Last Name */}
-            <div className="mb-4">
-              <input
-                type="text"
-                placeholder='Last name*'
+            <div className="mb-2">
+              <TextField
+                fullWidth
+                label="Last name"
                 id="lastName"
                 name="lastName"
                 value={form.lastName}
                 onChange={handleChange}
                 required
-                className="w-full h-12 px-3.5 border border-[#dddddd] rounded-[10px] bg-white text-[15px] text-[#342d2d] outline-none font-[Outfit,sans-serif] transition-colors focus:border-[#0e9e9e]"
+                variant="outlined"
+                size="small"
+                sx={fieldSx}
               />
             </div>
 
             {/* Email */}
-            <div className="mb-4">
-              <input
-                type="email"
-                placeholder='Email address*'
+            <div className="mb-2">
+              <TextField
+                fullWidth
+                label="Email address"
                 id="email"
                 name="email"
+                type="email"
                 value={form.email}
                 onChange={handleChange}
                 required
-                className="w-full h-12 px-3.5 border border-[#dddddd] rounded-[10px] bg-white text-[15px] text-[#342d2d] outline-none font-[Outfit,sans-serif] transition-colors focus:border-[#0e9e9e]"
+                variant="outlined"
+                size="small"
+                sx={fieldSx}
               />
             </div>
 
             {/* Password */}
-            <div className="mb-4">
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder='Password (8+ characters)*'
-                  id="password"
-                  name="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  minLength={8}
-                  required
-                  className="w-full h-12 px-3.5 pr-11 border border-[#dddddd] rounded-[10px] bg-white text-[15px] text-[#342d2d] outline-none font-[Outfit,sans-serif] transition-colors focus:border-[#0e9e9e]"
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer p-1 flex items-center justify-center"
-                  onClick={() => setShowPassword(!showPassword)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  <img src={showPassword ? openEye : closeEye} alt="" className="w-5 h-5 object-contain" />
-                </button>
-              </div>
+            <div className="mb-2">
+              <TextField
+                fullWidth
+                label="Password (8+ characters)"
+                id="password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                value={form.password}
+                onChange={handleChange}
+                required
+                inputProps={{ minLength: 8 }}
+                variant="outlined"
+                size="small"
+                sx={fieldSx}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                        size="small"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        sx={{ p: 0.5 }}
+                      >
+                        <img src={showPassword ? openEye : closeEye} alt="" className="w-5 h-5 object-contain" />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
             </div>
 
             {/* Terms Checkbox */}
@@ -197,7 +234,7 @@ function SignUp() {
             <button
               type="submit"
               disabled={!agreed}
-              className="w-full h-12 border-none rounded-[10px] bg-[#0e9e9e] text-white text-base font-semibold font-[Outfit,sans-serif] cursor-pointer tracking-wide transition-colors hover:bg-[#0c8a8a] disabled:opacity-55 disabled:cursor-not-allowed"
+              className="w-full h-12 border-none rounded-[50px] bg-[#0e9e9e] text-white text-base font-semibold font-[Outfit,sans-serif] cursor-pointer tracking-wide transition-colors hover:bg-[#0c8a8a] disabled:opacity-55 disabled:cursor-not-allowed"
             >
               Create account
             </button>
@@ -206,15 +243,15 @@ function SignUp() {
           {/* Social Login */}
           <div className="flex gap-3 mt-5">
             {/* Apple */}
-            <button className="flex-1 h-11 rounded-[10px] border-none bg-black flex items-center justify-center cursor-pointer transition-opacity hover:opacity-85" aria-label="Sign up with Apple">
+            <button className="flex-1 h-11 rounded-[50px] border-none bg-black flex items-center justify-center cursor-pointer transition-opacity hover:opacity-85" aria-label="Sign up with Apple">
               <img src={appleLogo} alt="Apple" className="h-5 object-contain" />
             </button>
             {/* Google */}
-            <button className="flex-1 h-11 rounded-[10px] border border-[#dddddd] bg-[#f9f2ef] flex items-center justify-center cursor-pointer transition-opacity hover:opacity-85" aria-label="Sign up with Google">
+            <button className="flex-1 h-11 rounded-[50px] border border-[#dddddd] bg-[#f9f2ef] flex items-center justify-center cursor-pointer transition-opacity hover:opacity-85" aria-label="Sign up with Google">
               <img src={googleLogo} alt="Google" className="h-5 object-contain" />
             </button>
             {/* Meta */}
-            <button className="flex-1 h-11 rounded-[10px] border-none bg-[#3d6ddf] flex items-center justify-center cursor-pointer transition-opacity hover:opacity-85" aria-label="Sign up with Meta">
+            <button className="flex-1 h-11 rounded-[50px] border-none bg-[#3d6ddf] flex items-center justify-center cursor-pointer transition-opacity hover:opacity-85" aria-label="Sign up with Meta">
               <img src={metaLogo} alt="Meta" className="h-5 object-contain" />
             </button>
           </div>
