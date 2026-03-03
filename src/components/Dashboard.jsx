@@ -156,6 +156,8 @@ export default function Dashboard() {
   const [scanList, setScanList]             = useState(scans);
   const [isModalOpen, setIsModalOpen]       = useState(false);
   const [toast, setToast]                   = useState(null);
+  const [page, setPage]                     = useState(0);
+  const PAGE_SIZE = 15;
   const filterRef = useRef(null);
 
   const selectedScan = selectedScanId != null ? scanList.find(s => s.id === selectedScanId) : null;
@@ -171,6 +173,9 @@ export default function Dashboard() {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
+  // Reset to page 0 whenever filters/search change
+  useEffect(() => { setPage(0); }, [search, filterStatus, filterType]);
+
   const filtered = useMemo(() => {
     return scanList.filter(s => {
       const q = search.toLowerCase();
@@ -180,6 +185,9 @@ export default function Dashboard() {
       return matchSearch && matchStatus && matchType;
     });
   }, [scanList, search, filterStatus, filterType]);
+
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paginated  = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   const activeFilterCount = (filterStatus ? 1 : 0) + (filterType ? 1 : 0);
 
@@ -763,7 +771,7 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {filtered.map(scan => (
+                    {paginated.map(scan => (
                       <tr
                         key={scan.id}
                         onClick={() => handleRowClick(scan.id)}
@@ -782,7 +790,7 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="p-5 grid grid-cols-2 gap-4 xl:grid-cols-3">
-                {filtered.map(scan => (
+                {paginated.map(scan => (
                   <div
                     key={scan.id}
                     onClick={() => handleRowClick(scan.id)}
@@ -807,12 +815,21 @@ export default function Dashboard() {
 
             {/* Footer */}
             <div className="px-5 py-3 flex items-center justify-between text-xs text-gray-400 border-t border-gray-100">
-              <span>Showing {filtered.length} of {search ? filtered.length : totalScans} Scans</span>
+              <span>
+                Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filtered.length)} of {filtered.length} Scans
+              </span>
               <div className="flex items-center gap-1">
-                <button className="w-7 h-7 flex items-center justify-center rounded border border-gray-200 hover:border-[#0CC8A8] hover:text-[#0CC8A8] transition-colors cursor-pointer bg-white">
+                <button
+                  onClick={() => setPage(p => Math.max(0, p - 1))}
+                  disabled={page === 0}
+                  className="w-7 h-7 flex items-center justify-center rounded border border-gray-200 hover:border-[#0CC8A8] hover:text-[#0CC8A8] transition-colors cursor-pointer bg-white disabled:opacity-40 disabled:cursor-not-allowed">
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7 9L4 6l3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </button>
-                <button className="w-7 h-7 flex items-center justify-center rounded border border-gray-200 hover:border-[#0CC8A8] hover:text-[#0CC8A8] transition-colors cursor-pointer bg-white">
+                <span className="px-2 font-medium text-[#1a1a1a]">{page + 1} / {totalPages}</span>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                  disabled={page >= totalPages - 1}
+                  className="w-7 h-7 flex items-center justify-center rounded border border-gray-200 hover:border-[#0CC8A8] hover:text-[#0CC8A8] transition-colors cursor-pointer bg-white disabled:opacity-40 disabled:cursor-not-allowed">
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M5 3l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </button>
               </div>
