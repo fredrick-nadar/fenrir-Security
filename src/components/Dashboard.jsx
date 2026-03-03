@@ -1,6 +1,8 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { orgSummary, severityStats, scans, totalScans } from '../data/mockData';
 import { LayoutGrid, ClipboardCheck, BarChart3, Calendar, Bell, Settings, Info, Ban, AlertTriangle, Search, SearchAlert, Filter, Columns, Plus, RefreshCw, List, Network, FlaskConical, FileText } from 'lucide-react';
 import spideringPng from '../assets/spidering.png';
@@ -152,7 +154,7 @@ export default function Dashboard() {
   const [filterOpen, setFilterOpen]     = useState(false);
   const [filterStatus, setFilterStatus] = useState('');
   const [filterType, setFilterType]     = useState('');
-  const [viewMode, setViewMode]         = useState('row'); // 'row' | 'column'
+  const [viewMode, setViewMode]         = useState('row'); 
   const [selectedScanId, setSelectedScanId] = useState(null);
   const [consoleTab, setConsoleTab]         = useState('activity');
   const [consoleOpen, setConsoleOpen]       = useState(true);
@@ -215,6 +217,121 @@ export default function Dashboard() {
   const activeFilterCount = (filterStatus ? 1 : 0) + (filterType ? 1 : 0);
 
   const handleLogout  = () => { logout(); navigate('/login'); };
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+
+    // ── Header ──────────────────────────────────────────────────────────
+    doc.setFillColor(12, 200, 168);
+    doc.rect(0, 0, doc.internal.pageSize.getWidth(), 48, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(18);
+    doc.setTextColor(255, 255, 255);
+    doc.text('fenrir Security — Scan Report', 40, 31);
+
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    const now = new Date().toLocaleString();
+    doc.text(`Generated: ${now}`, doc.internal.pageSize.getWidth() - 40, 31, { align: 'right' });
+
+    // ── Summary row ──────────────────────────────────────────────────────
+    const completed  = scanList.filter(s => s.status === 'Completed').length;
+    const scheduled  = scanList.filter(s => s.status === 'Scheduled').length;
+    const failed     = scanList.filter(s => s.status === 'Failed').length;
+    const inProgress = scanList.filter(s => s.status === 'In Progress').length;
+
+    doc.setTextColor(80, 80, 80);
+    doc.setFontSize(9);
+    doc.text(
+      `Total: ${scanList.length}   Completed: ${completed}   In Progress: ${inProgress}   Scheduled: ${scheduled}   Failed: ${failed}`,
+      40, 68
+    );
+
+    // ── Table ────────────────────────────────────────────────────────────
+    const rows = scanList.map(s => [
+      s.name,
+      s.type,
+      s.status,
+      `${s.progress}%`,
+      s.vulnerabilities.critical,
+      s.vulnerabilities.high,
+      s.vulnerabilities.medium,
+      s.vulnerabilities.low,
+      s.lastScan,
+    ]);
+
+    autoTable(doc, {
+      startY: 80,
+      head: [['Scan Name', 'Type', 'Status', 'Progress', 'Critical', 'High', 'Medium', 'Low', 'Last Scan']],
+      body: rows,
+      styles: { fontSize: 8, cellPadding: 5, font: 'helvetica' },
+      headStyles: {
+        fillColor: [12, 200, 168],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 160 },
+        1: { cellWidth: 70,  halign: 'center' },
+        2: { cellWidth: 80,  halign: 'center' },
+        3: { cellWidth: 55,  halign: 'center' },
+        4: { cellWidth: 48,  halign: 'center', textColor: [239, 68, 68] },
+        5: { cellWidth: 42,  halign: 'center', textColor: [249, 115, 22] },
+        6: { cellWidth: 52,  halign: 'center', textColor: [234, 179, 8] },
+        7: { cellWidth: 36,  halign: 'center', textColor: [34, 197, 94] },
+        8: { cellWidth: 'auto' },
+      },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      didDrawCell: (data) => {
+        // colour the Status cell background
+        if (data.section === 'body' && data.column.index === 2) {
+          const status = data.cell.raw;
+          const colours = {
+            Completed:    [220, 252, 231],
+            'In Progress':[224, 242, 254],
+            Scheduled:    [243, 244, 246],
+            Failed:       [254, 226, 226],
+          };
+          const fill = colours[status];
+          if (fill) {
+            doc.setFillColor(...fill);
+            doc.rect(data.cell.x, data.cell.y, data.cell.width, data.cell.height, 'F');
+            const textColours = {
+              Completed:    [22, 163, 74],
+              'In Progress':[3, 105, 161],
+              Scheduled:    [107, 114, 128],
+              Failed:       [220, 38, 38],
+            };
+            doc.setTextColor(...(textColours[status] || [0,0,0]));
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'bold');
+            doc.text(
+              status,
+              data.cell.x + data.cell.width / 2,
+              data.cell.y + data.cell.height / 2 + 3,
+              { align: 'center' }
+            );
+          }
+        }
+      },
+      // page numbers
+      didDrawPage: (data) => {
+        const pageCount = doc.internal.getNumberOfPages();
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.setFont('helvetica', 'normal');
+        doc.text(
+          `Page ${data.pageNumber} of ${pageCount}`,
+          doc.internal.pageSize.getWidth() / 2,
+          doc.internal.pageSize.getHeight() - 16,
+          { align: 'center' }
+        );
+      },
+    });
+
+    doc.save(`fenrir-scan-report-${Date.now()}.pdf`);
+  };
 
   // Format a timestamp as HH:MM:SS offset by `offsetMinutes` from scanStartTime
   const logTime = (offsetMinutes) => {
@@ -327,7 +444,9 @@ export default function Dashboard() {
             <span className="text-[#0CC8A8] font-medium">New Scan</span>
           </div>
           <div className="flex items-center gap-3">
-            <button className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-[#1a1a1a] hover:border-gray-300 transition-colors cursor-pointer">
+            <button
+              onClick={handleExportPDF}
+              className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-[#1a1a1a] hover:border-[#0CC8A8] hover:text-[#0CC8A8] transition-colors cursor-pointer">
               Export Report
             </button>
             <button className="px-4 py-2 rounded-lg bg-[#fee2e2] text-sm font-semibold text-[#dc2626] hover:bg-[#fecaca] transition-colors cursor-pointer border-none">
