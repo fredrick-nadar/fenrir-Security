@@ -72,17 +72,17 @@ export default function NewScanModal({ isOpen, onClose, onSubmit }) {
           transition: 'opacity 250ms ease, transform 250ms ease',
           fontFamily: 'Outfit, sans-serif',
         }}
-        className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden"
+        className="bg-white dark:bg-[#161b27] rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-[#212637]">
           <div>
-            <h2 className="text-base font-semibold text-[#1a1a1a]">Start New Scan</h2>
-            <p className="text-xs text-gray-400 mt-0.5">Configure and launch a security scan</p>
+            <h2 className="text-base font-semibold text-[#1a1a1a] dark:text-[#e8ecf5]">Start New Scan</h2>
+            <p className="text-xs text-gray-400 dark:text-[#8891a8] mt-0.5">Configure and launch a security scan</p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors cursor-pointer border-none bg-transparent"
+            className="p-1.5 rounded-lg text-gray-400 dark:text-[#6b7280] hover:bg-gray-100 dark:hover:bg-[#212637] hover:text-gray-600 dark:hover:text-[#8891a8] transition-colors cursor-pointer border-none bg-transparent"
           >
             <X size={16} strokeWidth={1.8} />
           </button>
@@ -93,7 +93,7 @@ export default function NewScanModal({ isOpen, onClose, onSubmit }) {
 
           {/* Scan Name */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            <label className="text-xs font-semibold text-gray-500 dark:text-[#8891a8] uppercase tracking-wide">
               Scan Name <span className="text-[#ef4444]">*</span>
             </label>
             <input
@@ -101,8 +101,8 @@ export default function NewScanModal({ isOpen, onClose, onSubmit }) {
               value={scanName}
               onChange={e => { setScanName(e.target.value); setErrors(p => ({ ...p, scanName: '' })); }}
               placeholder="Enter scan name"
-              className={`px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-colors bg-[#f8fafc]
-                ${errors.scanName ? 'border-[#ef4444] focus:border-[#ef4444]' : 'border-gray-200 focus:border-[#0CC8A8]'}`}
+              className={`px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-colors bg-[#f8fafc] dark:bg-[#0d1117] dark:text-[#e8ecf5] dark:placeholder-[#4b5568]
+                ${errors.scanName ? 'border-[#ef4444] focus:border-[#ef4444]' : 'border-gray-200 dark:border-[#212637] focus:border-[#0CC8A8]'}`}
               style={{ fontFamily: 'Outfit, sans-serif' }}
             />
             {errors.scanName && <p className="text-xs text-[#ef4444]">{errors.scanName}</p>}
@@ -110,13 +110,13 @@ export default function NewScanModal({ isOpen, onClose, onSubmit }) {
 
           {/* Scan Type */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            <label className="text-xs font-semibold text-gray-500 dark:text-[#8891a8] uppercase tracking-wide">
               Scan Type <span className="text-[#ef4444]">*</span>
             </label>
             <select
               value={scanType}
               onChange={e => setScanType(e.target.value)}
-              className="px-3.5 py-2.5 rounded-lg border border-gray-200 text-sm outline-none focus:border-[#0CC8A8] transition-colors bg-[#f8fafc] cursor-pointer"
+              className="px-3.5 py-2.5 rounded-lg border border-gray-200 dark:border-[#212637] text-sm outline-none focus:border-[#0CC8A8] transition-colors bg-[#f8fafc] dark:bg-[#0d1117] dark:text-[#e8ecf5] cursor-pointer"
               style={{ fontFamily: 'Outfit, sans-serif' }}
             >
               <option value="Greybox">Greybox</option>
@@ -127,7 +127,7 @@ export default function NewScanModal({ isOpen, onClose, onSubmit }) {
 
           {/* Target URL */}
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+            <label className="text-xs font-semibold text-gray-500 dark:text-[#8891a8] uppercase tracking-wide">
               Target URL <span className="text-[#ef4444]">*</span>
             </label>
             <input
@@ -135,8 +135,8 @@ export default function NewScanModal({ isOpen, onClose, onSubmit }) {
               value={targetUrl}
               onChange={e => { setTargetUrl(e.target.value); setErrors(p => ({ ...p, targetUrl: '' })); }}
               placeholder="https://example.com"
-              className={`px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-colors bg-[#f8fafc]
-                ${errors.targetUrl ? 'border-[#ef4444] focus:border-[#ef4444]' : 'border-gray-200 focus:border-[#0CC8A8]'}`}
+              className={`px-3.5 py-2.5 rounded-lg border text-sm outline-none transition-colors bg-[#f8fafc] dark:bg-[#0d1117] dark:text-[#e8ecf5] dark:placeholder-[#4b5568]
+                ${errors.targetUrl ? 'border-[#ef4444] focus:border-[#ef4444]' : 'border-gray-200 dark:border-[#212637] focus:border-[#0CC8A8]'}`}
               style={{ fontFamily: 'Outfit, sans-serif' }}
             />
             {errors.targetUrl && <p className="text-xs text-[#ef4444]">{errors.targetUrl}</p>}
@@ -146,22 +146,22 @@ export default function NewScanModal({ isOpen, onClose, onSubmit }) {
           <label className="flex items-center gap-3 cursor-pointer select-none group">
             <div
               onClick={() => setUseCreds(v => !v)}
-              className={`w-10 h-5 rounded-full transition-colors flex-shrink-0 relative ${useCreds ? 'bg-[#0CC8A8]' : 'bg-gray-200'}`}
+              className={`w-10 h-5 rounded-full transition-colors flex-shrink-0 relative ${useCreds ? 'bg-[#0CC8A8]' : 'bg-gray-200 dark:bg-[#2d3448]'}`}
             >
               <div
                 className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${useCreds ? 'translate-x-5' : 'translate-x-0.5'}`}
               />
             </div>
-            <span className="text-sm text-gray-600 group-hover:text-[#1a1a1a] transition-colors">Use stored credentials</span>
-            <span className="text-xs text-gray-400">(optional)</span>
+            <span className="text-sm text-gray-600 dark:text-[#8891a8] group-hover:text-[#1a1a1a] dark:group-hover:text-[#e8ecf5] transition-colors">Use stored credentials</span>
+            <span className="text-xs text-gray-400 dark:text-[#6b7280]">(optional)</span>
           </label>
 
           {/* Actions */}
-          <div className="flex items-center gap-3 pt-1 border-t border-gray-100 mt-1">
+          <div className="flex items-center gap-3 pt-1 border-t border-gray-100 dark:border-[#212637] mt-1">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-2.5 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-colors cursor-pointer bg-white"
+              className="flex-1 py-2.5 rounded-lg border border-gray-200 dark:border-[#2d3448] text-sm font-medium text-gray-600 dark:text-[#8891a8] hover:bg-gray-50 dark:hover:bg-[#1c2234] hover:border-gray-300 transition-colors cursor-pointer bg-white dark:bg-transparent"
             >
               Cancel
             </button>

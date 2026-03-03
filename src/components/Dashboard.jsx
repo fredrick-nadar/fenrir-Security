@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { orgSummary, severityStats, scans, totalScans } from '../data/mockData';
-import { LayoutGrid, ClipboardCheck, BarChart3, Calendar, Bell, Settings, Info, Ban, AlertTriangle, Search, SearchAlert, Filter, Columns, Plus, RefreshCw, List, Network, FlaskConical, FileText, Timer } from 'lucide-react';
+import { LayoutGrid, ClipboardCheck, BarChart3, Calendar, Bell, Settings, Info, Ban, AlertTriangle, Search, SearchAlert, Filter, Columns, Plus, RefreshCw, List, Network, FlaskConical, FileText, Timer, Moon, Sun } from 'lucide-react';
 import spideringPng from '../assets/spidering.png';
 import NewScanModal from './NewScanModal';
 import Toast from './Toast';
@@ -77,10 +77,10 @@ const severityConfig = {
 // ─── Sub-components ───────────────────────────────────────────────────────────
 function StatusChip({ status }) {
   const map = {
-    Completed:   'bg-[#dcfce7] text-[#16a34a]',
-    'In Progress': 'bg-[#e0f2fe] text-[#0369a1]',
-    Scheduled:   'bg-[#f3f4f6] text-[#6b7280]',
-    Failed:      'bg-[#fee2e2] text-[#dc2626]',
+    Completed:     'bg-[#dcfce7] dark:bg-[#0c2d1a] text-[#16a34a] dark:text-[#4ade80]',
+    'In Progress': 'bg-[#e0f2fe] dark:bg-[#0c1f2d] text-[#0369a1] dark:text-[#38bdf8]',
+    Scheduled:     'bg-[#f3f4f6] dark:bg-[#1e2435] text-[#6b7280] dark:text-[#9ca3af]',
+    Failed:        'bg-[#fee2e2] dark:bg-[#2d1010] text-[#dc2626] dark:text-[#f87171]',
   };
   return (
     <span className={`inline-flex items-center px-3 py-0.5 rounded-full text-xs font-semibold ${map[status] || map.Scheduled}`}>
@@ -115,10 +115,10 @@ function ProgressBar({ value }) {
   const color = value === 100 ? '#0CC8A8' : value <= 10 ? '#ef4444' : '#f97316';
   return (
     <div className="flex items-center gap-2">
-      <div className="w-24 h-2 rounded-full bg-gray-100 overflow-hidden">
+      <div className="w-24 h-2 rounded-full bg-gray-100 dark:bg-[#252b3a] overflow-hidden">
         <div className="h-full rounded-full transition-all" style={{ width: `${value}%`, backgroundColor: color }} />
       </div>
-      <span className="text-xs text-gray-500 font-medium w-9">{value}%</span>
+      <span className="text-xs text-gray-500 dark:text-[#8891a8] font-medium w-9">{value}%</span>
     </div>
   );
 }
@@ -197,6 +197,7 @@ export default function Dashboard() {
   const filterRef = useRef(null);
   const scanIntervalRef = useRef(null);
   const [activeScanId, setActiveScanId] = useState(null);
+  const [isDark, setIsDark] = useState(true);
 
   // Tick the "X mins/secs ago" label every second
   useEffect(() => {
@@ -227,6 +228,10 @@ export default function Dashboard() {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, []);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDark);
+  }, [isDark]);
 
   // Reset to page 0 whenever filters/search change
   useEffect(() => { setPage(0); }, [search, filterStatus, filterType]);
@@ -415,16 +420,16 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex h-screen bg-[#f8fafc] overflow-hidden" style={{ fontFamily: 'Outfit, sans-serif' }}>
+    <div className="flex h-screen bg-[#f8fafc] dark:bg-[#0d1117] overflow-hidden" style={{ fontFamily: 'Outfit, sans-serif' }}>
 
       {/* ── SIDEBAR ─────────────────────────────────────────────────────── */}
-      <aside className="w-[200px] flex-shrink-0 bg-white border-r border-gray-100 flex flex-col h-full">
+      <aside className="w-[200px] flex-shrink-0 bg-white dark:bg-[#161922] border-r border-gray-100 dark:border-[#212637] flex flex-col h-full">
         {/* Logo */}
         <div className="px-5 py-5 flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-[#0CC8A8] flex items-center justify-center">
             <div className="w-3 h-3 rounded-full bg-white" />
           </div>
-          <span className="text-lg font-semibold text-[#1a1a1a] tracking-tight">aps</span>
+          <span className="text-lg font-semibold text-[#1a1a1a] dark:text-[#e8ecf5] tracking-tight">aps</span>
         </div>
 
         {/* Top nav */}
@@ -436,7 +441,7 @@ export default function Dashboard() {
                 key={item.key}
                 onClick={() => handleNavClick(item)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer border-none transition-colors w-full text-left
-                  ${active ? 'bg-[#e6faf7] text-[#0CC8A8]' : 'bg-transparent text-[#6b7280] hover:bg-gray-50 hover:text-[#1a1a1a]'}`}
+                  ${active ? 'bg-[#e6faf7] dark:bg-[#0c2620] text-[#0CC8A8]' : 'bg-transparent text-[#6b7280] dark:text-[#8891a8] hover:bg-gray-50 dark:hover:bg-[#1b2030] hover:text-[#1a1a1a] dark:hover:text-[#e8ecf5]'}`}
               >
                 {item.icon}
                 {item.label}
@@ -444,7 +449,7 @@ export default function Dashboard() {
             );
           })}
 
-          <div className="my-3 border-t border-gray-100" />
+          <div className="my-3 border-t border-gray-100 dark:border-[#212637]" />
 
           {NAV_BOTTOM.map(item => {
             const active = activeNav === item.key;
@@ -453,7 +458,7 @@ export default function Dashboard() {
                 key={item.key}
                 onClick={() => handleNavClick(item)}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer border-none transition-colors w-full text-left
-                  ${active ? 'bg-[#e6faf7] text-[#0CC8A8]' : 'bg-transparent text-[#6b7280] hover:bg-gray-50 hover:text-[#1a1a1a]'}`}
+                  ${active ? 'bg-[#e6faf7] dark:bg-[#0c2620] text-[#0CC8A8]' : 'bg-transparent text-[#6b7280] dark:text-[#8891a8] hover:bg-gray-50 dark:hover:bg-[#1b2030] hover:text-[#1a1a1a] dark:hover:text-[#e8ecf5]'}`}
               >
                 {item.icon}
                 {item.label}
@@ -463,14 +468,14 @@ export default function Dashboard() {
         </nav>
 
         {/* User profile */}
-        <div className="px-4 py-4 border-t border-gray-100 flex items-center gap-3 transition-colors">
+        <div className="px-4 py-4 border-t border-gray-100 dark:border-[#212637] flex items-center gap-3 transition-colors">
           <div className="w-8 h-8 rounded-full bg-[#0CC8A8]/20 flex items-center justify-center flex-shrink-0">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M8 2a3 3 0 1 1 0 6A3 3 0 0 1 8 2zm0 7c3.314 0 6 1.343 6 3v1H2v-1c0-1.657 2.686-3 6-3z" fill="#0CC8A8"/>
             </svg>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs font-semibold text-[#1a1a1a] truncate">{user?.email || 'admin@edu.com'}</p>
+            <p className="text-xs font-semibold text-[#1a1a1a] dark:text-[#e8ecf5] truncate">{user?.email || 'admin@edu.com'}</p>
             <p className="text-[11px] text-gray-400">Security Lead</p>
           </div>
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="flex-shrink-0 text-gray-400">
@@ -480,12 +485,12 @@ export default function Dashboard() {
       </aside>
 
       {/* ── MAIN CONTENT ─────────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+<div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#f8fafc] dark:bg-[#0d1117]">
 
         {/* Top Header */}
-        <header className="bg-white border-b border-gray-100 px-7 py-3.5 flex items-center justify-between flex-shrink-0">
+        <header className="bg-white dark:bg-[#161922] border-b border-gray-100 dark:border-[#212637] px-7 py-3.5 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-1.5 text-sm text-gray-400">
-            <span className="font-medium text-[#1a1a1a]">Scan</span>
+            <span className="font-medium text-[#1a1a1a] dark:text-[#e8ecf5]">Scan</span>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 5l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
             <span>Private Assets</span>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 5l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/></svg>
@@ -494,8 +499,14 @@ export default function Dashboard() {
           <div className="flex items-center gap-3">
             <button
               onClick={handleExportPDF}
-              className="px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium text-[#1a1a1a] hover:border-[#0CC8A8] hover:text-[#0CC8A8] transition-colors cursor-pointer">
+              className="px-4 py-2 rounded-lg border border-gray-200 dark:border-[#2d3448] bg-white dark:bg-transparent text-sm font-medium text-[#1a1a1a] dark:text-[#e8ecf5] hover:border-[#0CC8A8] hover:text-[#0CC8A8] transition-colors cursor-pointer">
               Export Report
+            </button>
+            <button
+              onClick={() => setIsDark(d => !d)}
+              title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+              className="w-9 h-9 flex items-center justify-center rounded-lg border border-gray-200 dark:border-[#2d3448] bg-white dark:bg-[#1c2234] text-gray-500 dark:text-[#8891a8] hover:border-[#0CC8A8] hover:text-[#0CC8A8] transition-colors cursor-pointer">
+              {isDark ? <Sun size={15} strokeWidth={1.5} /> : <Moon size={15} strokeWidth={1.5} />}
             </button>
             <button
               disabled={!activeScanId}
@@ -510,10 +521,10 @@ export default function Dashboard() {
                 ));
                 setActiveScanId(null);
               }}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold border-none transition-colors
+              className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-colors
                 ${!activeScanId
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-[#fee2e2] text-[#dc2626] hover:bg-[#fecaca] cursor-pointer'}`}>
+                  ? 'bg-gray-100 dark:bg-[#1c2234] border-transparent text-gray-400 dark:text-[#4a5068] cursor-not-allowed'
+                  : 'bg-[#fee2e2] dark:bg-[#2d1a1a] border-[#fecaca] dark:border-[#5c2020] text-[#dc2626] hover:bg-[#fecaca] dark:hover:bg-[#3d2020] cursor-pointer'}`}>
               Stop Scan
             </button>
           </div>
@@ -526,7 +537,7 @@ export default function Dashboard() {
           {activeNav === 'projects' && (
             <>
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-semibold text-[#1a1a1a]">Projects</h2>
+                <h2 className="text-base font-semibold text-[#1a1a1a] dark:text-[#e8ecf5]">Projects</h2>
                 <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#0CC8A8] text-sm font-semibold text-white hover:bg-[#0ab597] transition-colors cursor-pointer border-none">
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="white" strokeWidth="1.8" strokeLinecap="round"/></svg>
                   New Project
@@ -534,19 +545,19 @@ export default function Dashboard() {
               </div>
               <div className="grid grid-cols-4 gap-4">
                 {/* Project Card */}
-                <div className="bg-white rounded-xl border border-gray-100 p-5 flex flex-col gap-3 hover:border-[#0CC8A8] hover:shadow-sm transition-all cursor-pointer">
+                <div className="bg-white dark:bg-[#161b27] rounded-xl border border-gray-100 dark:border-[#212637] p-5 flex flex-col gap-3 hover:border-[#0CC8A8] hover:shadow-sm transition-all cursor-pointer">
                   <div className="flex items-center justify-between">
                     <div className="w-9 h-9 rounded-lg bg-[#e6faf7] flex items-center justify-center">
                       <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
                         <path d="M2 5a2 2 0 0 1 2-2h2.5l2 2H14a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5z" stroke="#0CC8A8" strokeWidth="1.6"/>
                       </svg>
                     </div>
-                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#dcfce7] text-[#16a34a] font-semibold">Active</span>
+                    <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#dcfce7] dark:bg-[#0c2d1a] text-[#16a34a] dark:text-[#4ade80] font-semibold">Active</span>
                   </div>
                   <div>
                     <p className="font-semibold text-[#1a1a1a] text-sm">Project X</p>
                   </div>
-                  <div className="flex flex-col gap-1.5 text-xs pt-1 border-t border-gray-100">
+                  <div className="flex flex-col gap-1.5 text-xs pt-1 border-t border-gray-100 dark:border-[#212637]">
                     {[
                       { label: 'Org',          value: 'Project X' },
                       { label: 'Owner',        value: 'Nammagiri' },
@@ -554,8 +565,8 @@ export default function Dashboard() {
                       { label: 'Scheduled',    value: '1000' },
                     ].map(row => (
                       <div key={row.label} className="flex items-center justify-between">
-                        <span className="text-gray-400">{row.label}</span>
-                        <span className="font-semibold text-[#1a1a1a]">{row.value}</span>
+                        <span className="text-gray-400 dark:text-[#8891a8]">{row.label}</span>
+                        <span className="font-semibold text-[#1a1a1a] dark:text-[#e8ecf5]">{row.value}</span>
                       </div>
                     ))}
                   </div>
@@ -568,33 +579,33 @@ export default function Dashboard() {
           {activeNav === 'schedule' && (
             <>
               <div className="flex items-center justify-between">
-                <h2 className="text-base font-semibold text-[#1a1a1a]">Scheduled Scans</h2>
+                <h2 className="text-base font-semibold text-[#1a1a1a] dark:text-[#e8ecf5]">Scheduled Scans</h2>
               </div>
-              <div className="bg-white rounded-xl border border-gray-100 flex flex-col">
+              <div className="bg-white dark:bg-[#161b27] rounded-xl border border-gray-100 dark:border-[#212637] flex flex-col">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-gray-100">
+                      <tr className="border-b border-gray-100 dark:border-[#212637]">
                         {['Scan Name','Type','Status','Progress','Vulnerability','Last Scan'].map(col => (
-                          <th key={col} className="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wide whitespace-nowrap">{col}</th>
+                          <th key={col} className="px-5 py-3 text-left text-xs font-semibold text-gray-400 dark:text-[#8891a8] uppercase tracking-wide whitespace-nowrap">{col}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {scans.filter(s => s.status === 'Scheduled').map(scan => (
-                        <tr key={scan.id} className="border-b border-gray-50 last:border-0">
-                          <td className="px-5 py-3.5 font-medium text-[#1a1a1a]">{scan.name}</td>
-                          <td className="px-5 py-3.5 text-gray-500">{scan.type}</td>
+                        <tr key={scan.id} className="border-b border-gray-50 dark:border-[#1a1f2e] last:border-0">
+                          <td className="px-5 py-3.5 font-medium text-[#1a1a1a] dark:text-[#e8ecf5]">{scan.name}</td>
+                          <td className="px-5 py-3.5 text-gray-500 dark:text-[#8891a8]">{scan.type}</td>
                           <td className="px-5 py-3.5"><StatusChip status={scan.status} /></td>
                           <td className="px-5 py-3.5"><ProgressBar value={scan.progress} /></td>
-                          <td className="px-5 py-3.5 text-gray-400 text-xs font-medium">N/A</td>
-                          <td className="px-5 py-3.5 text-gray-400 text-xs">{scan.lastScan}</td>
+                          <td className="px-5 py-3.5 text-gray-400 dark:text-[#8891a8] text-xs font-medium">N/A</td>
+                          <td className="px-5 py-3.5 text-gray-400 dark:text-[#8891a8] text-xs">{scan.lastScan}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </div>
-                <div className="px-5 py-3 border-t border-gray-100 text-xs text-gray-400">
+                <div className="px-5 py-3 border-t border-gray-100 dark:border-[#212637] text-xs text-gray-400 dark:text-[#8891a8]">
                   {scans.filter(s => s.status === 'Scheduled').length} scheduled scan{scans.filter(s => s.status === 'Scheduled').length !== 1 ? 's' : ''}
                 </div>
               </div>
@@ -611,8 +622,8 @@ export default function Dashboard() {
                 </svg>
               </div>
               <div>
-                <p className="text-base font-semibold text-[#1a1a1a] capitalize">{activeNav}</p>
-                <p className="text-sm text-gray-400 mt-1">This section is yet to be added</p>
+                <p className="text-base font-semibold text-[#1a1a1a] dark:text-[#e8ecf5] capitalize">{activeNav}</p>
+                <p className="text-sm text-gray-400 dark:text-[#8891a8] mt-1">This section is yet to be added</p>
               </div>
             </div>
           )}
@@ -630,15 +641,15 @@ export default function Dashboard() {
                   Back to Dashboard
                 </button>
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M4 5l3 3-3 3" stroke="#d1d5db" strokeWidth="1.4" strokeLinecap="round"/></svg>
-                <span className="font-semibold text-[#1a1a1a]">{selectedScan.name}</span>
+                <span className="font-semibold text-[#1a1a1a] dark:text-[#e8ecf5]">{selectedScan.name}</span>
               </div>
 
               {/* Progress card */}
-              <div className="bg-white rounded-xl border border-gray-100 p-6">
+              <div className="bg-white dark:bg-[#161b27] rounded-xl border border-gray-100 dark:border-[#212637] p-6">
                 <div className="flex items-center gap-8">
                   <div className="flex-shrink-0 w-24 h-24 relative">
                     <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                      <circle cx="50" cy="50" r="42" fill="none" stroke="#f3f4f6" strokeWidth="10"/>
+                      <circle cx="50" cy="50" r="42" fill="none" stroke={isDark ? '#1e2535' : '#f3f4f6'} strokeWidth="10"/>
                       <circle cx="50" cy="50" r="42" fill="none" stroke="#0CC8A8" strokeWidth="10"
                         strokeDasharray={`${2 * Math.PI * 42}`}
                         strokeDashoffset={`${2 * Math.PI * 42}`}
@@ -646,7 +657,7 @@ export default function Dashboard() {
                       />
                     </svg>
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-xl font-bold text-[#1a1a1a] leading-none">0%</span>
+                      <span className="text-xl font-bold text-[#1a1a1a] dark:text-[#e8ecf5] leading-none">0%</span>
                       <span className="text-[10px] text-gray-400 mt-0.5">In Progress</span>
                     </div>
                   </div>
@@ -679,7 +690,7 @@ export default function Dashboard() {
                                   </div>
                                 </div>
                               ) : (
-                                <div className="w-10 h-10 rounded-full border-2 border-gray-200 bg-white flex items-center justify-center mb-1.5">
+                                <div className="w-10 h-10 rounded-full border-2 border-gray-200 dark:border-[#2a3040] bg-white dark:bg-[#1c2234] flex items-center justify-center mb-1.5">
                                   {i === 0
                                     ? <img src={spideringPng} width={18} height={18} alt="spidering" style={{ filter: 'brightness(0) opacity(0.35)', objectFit: 'contain' }} />
                                     : <Icon size={18} color="#d1d5db" strokeWidth={1.5} />
@@ -688,14 +699,14 @@ export default function Dashboard() {
                               )}
                               <span className={`text-xs font-medium ${active ? 'text-[#0CC8A8]' : 'text-gray-400'}`}>{step}</span>
                             </div>
-                            {i < STEPS.length - 1 && <div className="h-px flex-1 mx-1 mb-6 bg-gray-200" />}
+                            {i < STEPS.length - 1 && <div className="h-px flex-1 mx-1 mb-6 bg-gray-200 dark:bg-[#2a3040]" />}
                           </div>
                         );
                       })}
                     </div>
                   </div>
                 </div>
-                <div className="flex items-stretch mt-6 pt-5 border-t border-gray-100 text-sm">
+                <div className="flex items-stretch mt-6 pt-5 border-t border-gray-100 dark:border-[#212637] text-sm">
                   {[
                     { label: 'Scan Type',   value: selectedScan.type },
                     { label: 'Status',      value: 'In Progress' },
@@ -706,12 +717,12 @@ export default function Dashboard() {
                     <div
                       key={item.label}
                       className={`flex-1 flex flex-col items-center justify-center py-1 ${
-                        i < arr.length - 1 ? 'border-r border-gray-100' : ''
+                        i < arr.length - 1 ? 'border-r border-gray-100 dark:border-[#212637]' : ''
                       }`}
                     >
-                      <span className="text-[11px] text-gray-400 mb-0.5">{item.label}</span>
+                      <span className="text-[11px] text-gray-400 dark:text-[#8891a8] mb-0.5">{item.label}</span>
                       <span className={`font-semibold text-sm ${
-                        item.accent ? 'text-[#0CC8A8]' : 'text-[#1a1a1a]'
+                        item.accent ? 'text-[#0CC8A8]' : 'text-[#1a1a1a] dark:text-[#e8ecf5]'
                       }`}>{item.value}</span>
                     </div>
                   ))}
@@ -720,12 +731,12 @@ export default function Dashboard() {
 
               {/* Live Scan Console */}
               {consoleOpen && (
-                <div className="bg-white rounded-xl border border-gray-100 flex flex-col">
-                  <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+                <div className="bg-white dark:bg-[#161b27] rounded-xl border border-gray-100 dark:border-[#212637] flex flex-col">
+                  <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 dark:border-[#212637]">
                     <div className="flex items-center gap-2.5">
                       <div className="w-2 h-2 rounded-full bg-[#0CC8A8] animate-pulse" />
-                      <span className="text-sm font-semibold text-[#1a1a1a]">Live Scan Console</span>
-                      <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-gray-200 text-xs text-gray-400 ml-2">
+                      <span className="text-sm font-semibold text-[#1a1a1a] dark:text-[#e8ecf5]">Live Scan Console</span>
+                      <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-gray-200 dark:border-[#2a3040] text-xs text-gray-400 dark:text-[#8891a8] ml-2">
                         <Timer size={12} strokeWidth={1.8} className="text-[#eab308]" />
                         Running...
                       </div>
@@ -737,8 +748,8 @@ export default function Dashboard() {
 
                   <div className="flex" style={{ height: '360px' }}>
                     {/* Activity / Verification panel — 60% */}
-                    <div className="flex flex-col border-r border-gray-100 min-w-0" style={{ width: '60%' }}>
-                      <div className="flex border-b border-gray-100 px-4 pt-2">
+                    <div className="flex flex-col border-r border-gray-100 dark:border-[#212637] min-w-0" style={{ width: '60%' }}>
+                      <div className="flex border-b border-gray-100 dark:border-[#212637] px-4 pt-2">
                         {['Activity Log', 'Verification Loops'].map(tab => {
                           const key = tab === 'Activity Log' ? 'activity' : 'verification';
                           return (
@@ -757,7 +768,7 @@ export default function Dashboard() {
                           );
                         })}
                       </div>
-                      <div className="flex-1 overflow-y-auto px-5 py-4 text-xs text-[#1a1a1a] leading-relaxed space-y-2.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                      <div className="flex-1 overflow-y-auto px-5 py-4 text-xs text-[#1a1a1a] dark:text-[#c8cfe0] leading-relaxed space-y-2.5" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
                         {consoleTab === 'activity'
                           ? ACTIVITY_LOG.map((entry, i) => (
                               <div key={i}>
@@ -766,8 +777,8 @@ export default function Dashboard() {
                                   if (p.t === 'teal')     return <span key={j} className="text-[#0CC8A8]">{p.v}</span>;
                                   if (p.t === 'red')      return <span key={j} className="text-[#ef4444]">{p.v}</span>;
                                   if (p.t === 'bold-red') return <span key={j} className="text-[#ef4444] font-bold">{p.v}</span>;
-                                  if (p.t === 'pill')     return <span key={j} className="bg-[#1a1a1a] text-white px-1.5 py-0.5 rounded text-[10px] mx-0.5 inline-block">{p.v}</span>;
-                                  if (p.t === 'chip')     return <span key={j} className="bg-[#e6faf7] text-[#0CC8A8] border border-[#0CC8A8]/40 px-1.5 py-0.5 rounded text-[10px] mx-0.5 inline-block font-semibold">{p.v}</span>;
+                                  if (p.t === 'pill')     return <span key={j} className="bg-[#1a1a1a] dark:bg-[#2a3448] text-white px-1.5 py-0.5 rounded text-[10px] mx-0.5 inline-block">{p.v}</span>;
+                                  if (p.t === 'chip')     return <span key={j} className="bg-[#e6faf7] dark:bg-[#0c2620] text-[#0CC8A8] border border-[#0CC8A8]/40 px-1.5 py-0.5 rounded text-[10px] mx-0.5 inline-block font-semibold">{p.v}</span>;
                                   return <span key={j}>{p.v}</span>;
                                 })}
                                 {entry.sub && (
@@ -778,10 +789,10 @@ export default function Dashboard() {
                           : (
                               <div className="space-y-3 pt-1">
                                 {['Verify SQL Injection – /api/auth/login', 'Verify IDOR – /api/users/profile', 'Verify Rate Limit – /api/search'].map((loop, i) => (
-                                  <div key={i} className="border border-gray-100 rounded-lg p-3">
+                                  <div key={i} className="border border-gray-100 dark:border-[#2a3040] rounded-lg p-3">
                                     <div className="flex items-center justify-between mb-1">
-                                      <span className="text-xs font-semibold text-[#1a1a1a]">{loop}</span>
-                                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${i === 0 ? 'bg-[#dcfce7] text-[#16a34a]' : 'bg-[#f3f4f6] text-[#6b7280]'}`}>
+                                      <span className="text-xs font-semibold text-[#1a1a1a] dark:text-[#e8ecf5]">{loop}</span>
+                                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${i === 0 ? 'bg-[#dcfce7] dark:bg-[#0c2d1a] text-[#16a34a] dark:text-[#4ade80]' : 'bg-[#f3f4f6] dark:bg-[#1e2435] text-[#6b7280] dark:text-[#9ca3af]'}`}>
                                         {i === 0 ? 'Confirmed' : 'Pending'}
                                       </span>
                                     </div>
@@ -799,17 +810,17 @@ export default function Dashboard() {
 
                     {/* Finding Log — 40% */}
                     <div className="flex flex-col min-w-0" style={{ width: '40%' }}>
-                      <div className="px-4 py-3 border-b border-gray-100">
-                        <span className="text-xs font-semibold text-[#1a1a1a]">Finding Log</span>
+                      <div className="px-4 py-3 border-b border-gray-100 dark:border-[#212637]">
+                        <span className="text-xs font-semibold text-[#1a1a1a] dark:text-[#e8ecf5]">Finding Log</span>
                       </div>
                       <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2.5">
                         {FINDINGS.map((f, i) => (
-                          <div key={i} className="border border-gray-100 rounded-lg p-3">
+                          <div key={i} className="border border-gray-100 dark:border-[#2a3040] rounded-lg p-3">
                             <div className="flex items-center justify-between mb-1.5">
                               <span className="text-[10px] font-bold px-2 py-0.5 rounded-md" style={{ backgroundColor: f.bg, color: f.color }}>{f.severity}</span>
-                              <span className="text-[10px] text-gray-400">{logTime(2 + i * 2)}</span>
+                              <span className="text-[10px] text-gray-400 dark:text-[#8891a8]">{logTime(2 + i * 2)}</span>
                             </div>
-                            <p className="text-xs font-semibold text-[#1a1a1a] mb-0.5 leading-snug">{f.title}</p>
+                            <p className="text-xs font-semibold text-[#1a1a1a] dark:text-[#e8ecf5] mb-0.5 leading-snug">{f.title}</p>
                             <p className="text-[10px] text-[#0CC8A8] mb-1.5">{f.path}</p>
                             <p className="text-[10px] text-gray-400 leading-snug">{f.desc}</p>
                           </div>
@@ -818,7 +829,7 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                  <div className="px-5 py-2 border-t border-gray-100 flex items-center gap-6 text-[11px] text-gray-400">
+                  <div className="px-5 py-2 border-t border-gray-100 dark:border-[#212637] flex items-center gap-6 text-[11px] text-gray-400 dark:text-[#8891a8]">
                     <span>Sub-Agents: 0</span>
                     <span>Parallel Executions: 2</span>
                     <span>Operations: 1</span>
@@ -835,7 +846,7 @@ export default function Dashboard() {
               {!consoleOpen && (
                 <button
                   onClick={() => setConsoleOpen(true)}
-                  className="flex items-center gap-2 self-start px-4 py-2 rounded-lg border border-gray-200 text-sm font-medium text-gray-600 hover:border-[#0CC8A8] hover:text-[#0CC8A8] transition-colors cursor-pointer bg-white"
+                  className="flex items-center gap-2 self-start px-4 py-2 rounded-lg border border-gray-200 dark:border-[#2a3040] text-sm font-medium text-gray-600 dark:text-[#8891a8] hover:border-[#0CC8A8] hover:text-[#0CC8A8] transition-colors cursor-pointer bg-white dark:bg-[#161b27]"
                 >
                   <div className="w-1.5 h-1.5 rounded-full bg-[#0CC8A8]" />
                   Open Console
@@ -848,7 +859,7 @@ export default function Dashboard() {
           {activeNav === 'dashboard' && !selectedScan && <>
 
           {/* Org Summary Bar */}
-          <div className="bg-white rounded-xl border border-gray-100 px-6 py-3.5 flex items-center text-sm">
+          <div className="bg-white dark:bg-[#161b27] rounded-xl border border-gray-100 dark:border-[#212637] px-6 py-3.5 flex items-center text-sm">
             {[
               { label: 'Org',          value: orgSummary.orgName },
               { label: 'Owner',        value: orgSummary.owner },
@@ -859,13 +870,13 @@ export default function Dashboard() {
             ].map((item, i, arr) => (
               <div
                 key={item.label}
-                className={`flex-1 flex items-center justify-center gap-1.5 py-0.5 ${i < arr.length - 1 ? 'border-r border-gray-200' : ''}`}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-0.5 ${i < arr.length - 1 ? 'border-r border-gray-200 dark:border-[#212637]' : ''}`}
               >
-                <span className="text-gray-400">{item.label}:</span>
-                <span className="font-semibold text-[#1a1a1a]">{item.value}</span>
+                <span className="text-gray-400 dark:text-[#8891a8]">{item.label}:</span>
+                <span className="font-semibold text-[#1a1a1a] dark:text-[#e8ecf5]">{item.value}</span>
               </div>
             ))}
-            <div className="flex items-center gap-1.5 text-gray-400 pl-5 ml-4 border-l border-gray-200 whitespace-nowrap">
+            <div className="flex items-center gap-1.5 text-gray-400 dark:text-[#8891a8] pl-5 ml-4 border-l border-gray-200 dark:border-[#212637] whitespace-nowrap">
               <RefreshCw size={14} strokeWidth={1.5} />
               <span className="text-xs">{lastUpdatedLabel}</span>
             </div>
@@ -876,13 +887,13 @@ export default function Dashboard() {
             {severityStats.map(stat => {
               const cfg = severityConfig[stat.id];
               return (
-                <div key={stat.id} className="bg-white rounded-xl border border-gray-100 px-5 py-5 flex flex-col gap-3">
+                <div key={stat.id} className="bg-white dark:bg-[#161b27] rounded-xl border border-gray-100 dark:border-[#212637] px-5 py-5 flex flex-col gap-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-500">{stat.label}</span>
+                    <span className="text-sm font-medium text-gray-500 dark:text-[#8891a8]">{stat.label}</span>
                     <div className="p-2 rounded-lg" style={{ backgroundColor: cfg.bg }}>{cfg.icon}</div>
                   </div>
                   <div className="flex items-center gap-3 flex-wrap">
-                    <div className="text-3xl font-bold text-[#1a1a1a] leading-none">{stat.count}</div>
+                    <div className="text-3xl font-bold text-[#1a1a1a] dark:text-[#e8ecf5] leading-none">{stat.count}</div>
                     <div className={`flex items-center gap-1 text-xs font-semibold ${stat.trend === 'decrease' ? 'text-[#16a34a]' : 'text-[#dc2626]'}`}>
                       {stat.trend === 'decrease'
                         ? <svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M6 2v8M2 7l4 4 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -897,9 +908,9 @@ export default function Dashboard() {
           </div>
 
           {/* Table Card */}
-          <div className="bg-white rounded-xl border border-gray-100 flex flex-col">
+          <div className="bg-white dark:bg-[#161b27] rounded-xl border border-gray-100 dark:border-[#212637] flex flex-col">
             {/* Toolbar */}
-            <div className="px-5 py-3.5 flex items-center gap-3 border-b border-gray-100">
+            <div className="px-5 py-3.5 flex items-center gap-3 border-b border-gray-100 dark:border-[#212637]">
               <div className="flex-1 relative">
                 <Search size={15} strokeWidth={1.4} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
@@ -907,7 +918,7 @@ export default function Dashboard() {
                   placeholder="Search scans by name or type..."
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-[#0CC8A8] transition-colors bg-[#f8fafc]"
+                  className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 dark:border-[#2a3040] rounded-lg outline-none focus:border-[#0CC8A8] transition-colors bg-[#f8fafc] dark:bg-[#0d1117] dark:text-[#e8ecf5] dark:placeholder:text-[#4a5468]"
                   style={{ fontFamily: 'Outfit, sans-serif' }}
                 />
               </div>
@@ -916,8 +927,8 @@ export default function Dashboard() {
                   onClick={() => setFilterOpen(o => !o)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer
                     ${filterOpen || activeFilterCount > 0
-                      ? 'border-[#0CC8A8] bg-[#e6faf7] text-[#0CC8A8]'
-                      : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'}`}
+                      ? 'border-[#0CC8A8] bg-[#e6faf7] dark:bg-[#0c2620] text-[#0CC8A8]'
+                      : 'border-gray-200 dark:border-[#2a3040] bg-white dark:bg-[#1c2234] text-gray-600 dark:text-[#8891a8] hover:border-gray-300 dark:hover:border-[#3a4458]'}`}
                 >
                   <Filter size={14} strokeWidth={1.5} />
                   Filter
@@ -929,10 +940,10 @@ export default function Dashboard() {
                 </button>
 
                 {filterOpen && (
-                  <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-lg z-50 p-4 flex flex-col gap-4">
+                  <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-[#1c2234] border border-gray-200 dark:border-[#2a3040] rounded-xl shadow-lg dark:shadow-[0_4px_24px_rgba(0,0,0,0.4)] z-50 p-4 flex flex-col gap-4">
                     {/* Status filter */}
                     <div>
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Status</p>
+                      <p className="text-xs font-semibold text-gray-400 dark:text-[#8891a8] uppercase tracking-wide mb-2">Status</p>
                       <div className="flex flex-wrap gap-1.5">
                         {['', 'Completed', 'Scheduled', 'Failed'].map(s => (
                           <button
@@ -941,7 +952,7 @@ export default function Dashboard() {
                             className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors cursor-pointer
                               ${ filterStatus === s
                                 ? 'bg-[#0CC8A8] text-white border-[#0CC8A8]'
-                                : 'bg-white text-gray-500 border-gray-200 hover:border-[#0CC8A8] hover:text-[#0CC8A8]' }`}
+                                : 'bg-white dark:bg-[#252d40] text-gray-500 dark:text-[#8891a8] border-gray-200 dark:border-[#2a3040] hover:border-[#0CC8A8] hover:text-[#0CC8A8]' }`}
                           >
                             {s || 'All'}
                           </button>
@@ -951,7 +962,7 @@ export default function Dashboard() {
 
                     {/* Type filter */}
                     <div>
-                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Type</p>
+                      <p className="text-xs font-semibold text-gray-400 dark:text-[#8891a8] uppercase tracking-wide mb-2">Type</p>
                       <div className="flex flex-wrap gap-1.5">
                         {['', 'Greybox', 'Blackbox', 'Whitebox'].map(t => (
                           <button
@@ -960,7 +971,7 @@ export default function Dashboard() {
                             className={`px-3 py-1 rounded-full text-xs font-semibold border transition-colors cursor-pointer
                               ${ filterType === t
                                 ? 'bg-[#0CC8A8] text-white border-[#0CC8A8]'
-                                : 'bg-white text-gray-500 border-gray-200 hover:border-[#0CC8A8] hover:text-[#0CC8A8]' }`}
+                                : 'bg-white dark:bg-[#252d40] text-gray-500 dark:text-[#8891a8] border-gray-200 dark:border-[#2a3040] hover:border-[#0CC8A8] hover:text-[#0CC8A8]' }`}
                           >
                             {t || 'All'}
                           </button>
@@ -984,8 +995,8 @@ export default function Dashboard() {
                 onClick={() => setViewMode(v => v === 'row' ? 'column' : 'row')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-colors cursor-pointer
                   ${viewMode === 'column'
-                    ? 'border-[#0CC8A8] bg-[#e6faf7] text-[#0CC8A8]'
-                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'}`}
+                    ? 'border-[#0CC8A8] bg-[#e6faf7] dark:bg-[#0c2620] text-[#0CC8A8]'
+                    : 'border-gray-200 dark:border-[#2a3040] bg-white dark:bg-[#1c2234] text-gray-600 dark:text-[#8891a8] hover:border-gray-300 dark:hover:border-[#3a4458]'}`}
               >
                 {viewMode === 'column'
                   ? <List size={14} strokeWidth={1.5} />
@@ -1018,14 +1029,14 @@ export default function Dashboard() {
                     {paginated.map(scan => (
                       <tr
                         key={scan.id}
-                        className="border-b border-gray-50 last:border-0 hover:bg-[#f0fdf9] transition-colors"
+                        className="border-b border-gray-50 dark:border-[#1a1f2e] last:border-0 hover:bg-[#f0fdf9] dark:hover:bg-[#1a2030] transition-colors"
                       >
-                        <td className="px-5 py-3.5 font-medium text-[#1a1a1a]">{scan.name}</td>
-                        <td className="px-5 py-3.5 text-gray-500">{scan.type}</td>
+                        <td className="px-5 py-3.5 font-medium text-[#1a1a1a] dark:text-[#e8ecf5]">{scan.name}</td>
+                        <td className="px-5 py-3.5 text-gray-500 dark:text-[#8891a8]">{scan.type}</td>
                         <td className="px-5 py-3.5"><StatusChip status={scan.status} /></td>
                         <td className="px-5 py-3.5"><ProgressBar value={scan.progress} /></td>
                         <td className="px-5 py-3.5"><VulnBadges v={scan.vulnerabilities} /></td>
-                        <td className="px-5 py-3.5 text-gray-400 text-xs">{scan.lastScan}</td>
+                        <td className="px-5 py-3.5 text-gray-400 dark:text-[#8891a8] text-xs">{scan.lastScan}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1036,19 +1047,19 @@ export default function Dashboard() {
                 {paginated.map(scan => (
                   <div
                     key={scan.id}
-                    className="border border-gray-100 rounded-xl p-4 transition-all flex flex-col gap-3 hover:border-[#0CC8A8]"
+                    className="border border-gray-100 dark:border-[#212637] rounded-xl p-4 transition-all flex flex-col gap-3 hover:border-[#0CC8A8] dark:bg-[#1c2234]"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <p className="font-semibold text-[#1a1a1a] text-sm">{scan.name}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">{scan.type}</p>
+                        <p className="font-semibold text-[#1a1a1a] dark:text-[#e8ecf5] text-sm">{scan.name}</p>
+                        <p className="text-xs text-gray-400 dark:text-[#8891a8] mt-0.5">{scan.type}</p>
                       </div>
                       <StatusChip status={scan.status} />
                     </div>
                     <ProgressBar value={scan.progress} />
                     <div className="flex items-center justify-between">
                       <VulnBadges v={scan.vulnerabilities} />
-                      <span className="text-[11px] text-gray-400">{scan.lastScan}</span>
+                      <span className="text-[11px] text-gray-400 dark:text-[#8891a8]">{scan.lastScan}</span>
                     </div>
                   </div>
                 ))}
@@ -1056,7 +1067,7 @@ export default function Dashboard() {
             )}
 
             {/* Footer */}
-            <div className="px-5 py-3 flex items-center justify-between text-xs text-gray-400 border-t border-gray-100">
+            <div className="px-5 py-3 flex items-center justify-between text-xs text-gray-400 dark:text-[#8891a8] border-t border-gray-100 dark:border-[#212637]">
               <span>
                 Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filtered.length)} of {filtered.length} Scans
               </span>
@@ -1064,14 +1075,14 @@ export default function Dashboard() {
                 <button
                   onClick={() => setPage(p => Math.max(0, p - 1))}
                   disabled={page === 0}
-                  className="w-7 h-7 flex items-center justify-center rounded border border-gray-200 hover:border-[#0CC8A8] hover:text-[#0CC8A8] transition-colors cursor-pointer bg-white disabled:opacity-40 disabled:cursor-not-allowed">
+                  className="w-7 h-7 flex items-center justify-center rounded border border-gray-200 dark:border-[#2a3040] hover:border-[#0CC8A8] hover:text-[#0CC8A8] transition-colors cursor-pointer bg-white dark:bg-[#1c2234] dark:text-[#8891a8] disabled:opacity-40 disabled:cursor-not-allowed">
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M7 9L4 6l3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </button>
-                <span className="px-2 font-medium text-[#1a1a1a]">{page + 1} / {totalPages}</span>
+                <span className="px-2 font-medium text-[#1a1a1a] dark:text-[#e8ecf5]">{page + 1} / {totalPages}</span>
                 <button
                   onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                   disabled={page >= totalPages - 1}
-                  className="w-7 h-7 flex items-center justify-center rounded border border-gray-200 hover:border-[#0CC8A8] hover:text-[#0CC8A8] transition-colors cursor-pointer bg-white disabled:opacity-40 disabled:cursor-not-allowed">
+                  className="w-7 h-7 flex items-center justify-center rounded border border-gray-200 dark:border-[#2a3040] hover:border-[#0CC8A8] hover:text-[#0CC8A8] transition-colors cursor-pointer bg-white dark:bg-[#1c2234] dark:text-[#8891a8] disabled:opacity-40 disabled:cursor-not-allowed">
                   <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M5 3l3 3-3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </button>
               </div>
