@@ -675,8 +675,8 @@ export default function Dashboard() {
               </div>
 
               {/* Progress card */}
-              <div className="bg-white dark:bg-[#161b27] rounded-xl border border-gray-100 dark:border-[#212637] p-4 md:p-6">
-                <div className="flex flex-col md:flex-row items-center gap-6 md:gap-8">
+              <div className="bg-white dark:bg-[#161b27] rounded-xl border border-gray-100 dark:border-[#212637] p-3 md:p-6 overflow-visible">
+                <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8">
                   <div className="flex-shrink-0 w-24 h-24 relative">
                     <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
                       <circle cx="50" cy="50" r="42" fill="none" stroke={isDark ? '#1e2535' : '#f3f4f6'} strokeWidth="10"/>
@@ -691,13 +691,13 @@ export default function Dashboard() {
                       <span className="text-[10px] text-gray-400 mt-0.5">In Progress</span>
                     </div>
                   </div>
-                  <div className="flex-1 w-full">
-                    <div className="flex items-center gap-0 overflow-x-auto pb-2">
+                  <div className="flex-1 w-full overflow-visible">
+                    <div className="flex items-center gap-0 overflow-visible py-2 px-1">
                       {STEPS.map((step, i) => {
                         const Icon = STEP_ICONS[i];
                         const active = i === 0;
                         return (
-                          <div key={step} className="flex items-center flex-1 min-w-[70px]">
+                          <div key={step} className="flex items-center flex-1 min-w-0">
                             <div className="flex flex-col items-center flex-1">
                               {active ? (
                                 <div className="relative flex items-center justify-center mb-1.5">
@@ -720,16 +720,17 @@ export default function Dashboard() {
                                   </div>
                                 </div>
                               ) : (
-                                <div className="w-10 h-10 rounded-full border-2 border-gray-200 dark:border-[#2a3040] bg-white dark:bg-[#1c2234] flex items-center justify-center mb-1.5">
+                                <div className="w-8 h-8 md:w-10 md:h-10 rounded-full border-2 border-gray-200 dark:border-[#2a3040] bg-white dark:bg-[#1c2234] flex items-center justify-center mb-1.5">
                                   {i === 0
-                                    ? <img src={spideringPng} width={18} height={18} alt="spidering" style={{ filter: 'brightness(0) opacity(0.35)', objectFit: 'contain' }} />
-                                    : <Icon size={18} color="#d1d5db" strokeWidth={1.5} />
+                                    ? <img src={spideringPng} width={16} height={16} alt="spidering" className="md:w-[18px] md:h-[18px]" style={{ filter: 'brightness(0) opacity(0.35)', objectFit: 'contain' }} />
+                                    : <Icon size={16} className="md:hidden" color="#d1d5db" strokeWidth={1.5} />
                                   }
+                                  {i !== 0 && <Icon size={18} className="hidden md:block" color="#d1d5db" strokeWidth={1.5} />}
                                 </div>
                               )}
-                              <span className={`text-xs font-medium ${active ? 'text-[#0CC8A8]' : 'text-gray-400'}`}>{step}</span>
+                              <span className={`text-[10px] md:text-xs font-medium whitespace-nowrap ${active ? 'text-[#0CC8A8]' : 'text-gray-400'}`}>{step}</span>
                             </div>
-                            {i < STEPS.length - 1 && <div className="h-px flex-1 mx-1 mb-6 bg-gray-200 dark:bg-[#2a3040]" />}
+                            {i < STEPS.length - 1 && <div className="h-px flex-1 mx-0.5 md:mx-1 mb-6 bg-gray-200 dark:bg-[#2a3040]" />}
                           </div>
                         );
                       })}
@@ -890,7 +891,7 @@ export default function Dashboard() {
 
           {/* Org Summary Bar */}
           <div className="bg-white dark:bg-[#161b27] rounded-xl border border-gray-100 dark:border-[#212637] px-4 md:px-6 py-3.5">
-            <div className="grid grid-cols-3 md:flex md:items-center gap-3 md:gap-0 text-sm">
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-3 md:gap-0 text-sm">
               {[
                 { label: 'Org',          value: orgSummary.orgName },
                 { label: 'Owner',        value: orgSummary.owner },
@@ -898,19 +899,19 @@ export default function Dashboard() {
                 { label: 'Scheduled',    value: orgSummary.scheduled },
                 { label: 'Rescans',      value: orgSummary.rescans },
                 { label: 'Failed Scans', value: orgSummary.failedScans },
+                { label: 'Last Scanned', value: lastUpdatedLabel, isTime: true },
               ].map((item, i, arr) => (
                 <div
                   key={item.label}
-                  className={`md:flex-1 flex flex-col md:flex-row items-start md:items-center md:justify-center gap-0.5 md:gap-1.5 py-1 md:py-0.5 ${i < arr.length - 1 ? 'md:border-r md:border-gray-200 md:dark:border-[#212637]' : ''}`}
+                  className={`flex flex-col items-center justify-center gap-0.5 py-0.5 ${i < arr.length - 1 ? 'md:border-r md:border-gray-200 md:dark:border-[#212637]' : ''}`}
                 >
-                  <span className="text-[11px] md:text-sm text-gray-400 dark:text-[#8891a8]">{item.label}</span>
-                  <span className="font-semibold text-sm md:text-sm text-[#1a1a1a] dark:text-[#e8ecf5]">{item.value}</span>
+                  <span className="text-[10px] md:text-xs text-gray-400 dark:text-[#8891a8] whitespace-nowrap">{item.label}</span>
+                  <span className={`font-semibold text-xs md:text-sm whitespace-nowrap ${item.isTime ? 'text-gray-500 dark:text-[#8891a8]' : 'text-[#1a1a1a] dark:text-[#e8ecf5]'}`}>
+                    {item.isTime && <RefreshCw size={11} strokeWidth={1.5} className="inline mr-1 -mt-0.5" />}
+                    {item.value}
+                  </span>
                 </div>
               ))}
-            </div>
-            <div className="flex items-center gap-1.5 text-gray-400 dark:text-[#8891a8] mt-2 md:mt-0 pt-2 md:pt-0 border-t md:border-t-0 md:border-l border-gray-200 dark:border-[#212637] md:pl-5 md:ml-4 whitespace-nowrap">
-              <RefreshCw size={14} strokeWidth={1.5} />
-              <span className="text-xs">{lastUpdatedLabel}</span>
             </div>
           </div>
 
