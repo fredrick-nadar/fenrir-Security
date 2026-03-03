@@ -1,8 +1,24 @@
-import SignUp from './components/SignUp'
-import './App.css'
+import { Routes, Route, Navigate } from 'react-router-dom';
+import SignUp from './components/SignUp';
+import Dashboard from './components/Dashboard';
+import ProtectedRoute from './components/ProtectedRoute';
+import './App.css';
 
 function App() {
-  return <SignUp />
+  return (
+    <Routes>
+      <Route path="/" element={<SignUp />} />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 }
 
-export default App
+export default App;

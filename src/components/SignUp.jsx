@@ -1,17 +1,70 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import Toast from './Toast';
 import heroImage from '../assets/design_image_0.png';
 import appleLogo from '../assets/apple.png';
 import googleLogo from '../assets/google.png';
 import metaLogo from '../assets/meta.png';
 import openEye from '../assets/open_eye.png';
 import closeEye from '../assets/close_eye.png';
-import TextField from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
-import IconButton from '@mui/material/IconButton';
+
+// Custom floating-label input — no external library
+function FloatingInput({ id, name, label, type = 'text', value, onChange, minLength, endAdornment }) {
+  const [focused, setFocused] = useState(false);
+  const floated = focused || value.length > 0;
+
+  return (
+    <div
+      className={`relative border rounded-[10px] transition-colors ${
+        focused ? 'border-[#0e9e9e]' : 'border-[#dddddd] hover:border-[#0e9e9e]'
+      }`}
+    >
+      <label
+        htmlFor={id}
+        style={{
+          position: 'absolute',
+          left: '12px',
+          fontFamily: 'Outfit, sans-serif',
+          pointerEvents: 'none',
+          transition: 'top 0.15s, font-size 0.15s, color 0.15s, transform 0.15s',
+          top: floated ? '5px' : '50%',
+          transform: floated ? 'none' : 'translateY(-50%)',
+          fontSize: floated ? '11px' : '14px',
+          color: floated && focused ? '#0e9e9e' : '#9e9e9e',
+          lineHeight: 1,
+        }}
+      >
+        {label}
+      </label>
+      <input
+        id={id}
+        name={name}
+        type={type}
+        value={value}
+        onChange={onChange}
+        minLength={minLength}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        autoComplete="off"
+        style={{ fontFamily: 'Outfit, sans-serif' }}
+        className="w-full pt-[22px] pb-[6px] text-[15px] text-[#342d2d] bg-transparent outline-none rounded-[10px] pr-10 pl-3"
+      />
+      {endAdornment && (
+        <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center">
+          {endAdornment}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function SignUp() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [toast, setToast] = useState(null);
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -23,32 +76,30 @@ function SignUp() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  const isFormFilled =
+    form.firstName.trim() &&
+    form.lastName.trim() &&
+    form.email.trim() &&
+    form.password.length >= 8 &&
+    agreed;
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Form submitted:', form);
-  };
-
-  const fieldSx = {
-    mb: 1,
-    '& .MuiOutlinedInput-root': {
-      fontFamily: 'Outfit, sans-serif',
-      fontSize: '15px',
-      color: '#342d2d',
-      borderRadius: '10px',
-      '& fieldset': { borderColor: '#dddddd' },
-      '&:hover fieldset': { borderColor: '#0e9e9e' },
-      '&.Mui-focused fieldset': { borderColor: '#0e9e9e' },
-    },
-    '& .MuiInputLabel-root': {
-      fontFamily: 'Outfit, sans-serif',
-      color: '#9e9e9e',
-      fontSize: '14px',
-      '&.Mui-focused': { color: '#0e9e9e' },
-    },
+    if (!isFormFilled) return;
+    login();
+    setToast({ message: 'Account created successfully!', type: 'success' });
+    setTimeout(() => navigate('/dashboard'), 1500);
   };
 
   return (
     <div className="relative min-h-screen w-full font-[Outfit,sans-serif] overflow-hidden">
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
       {/* Full-screen Background Image */}
       <img src={heroImage} alt="" className="absolute inset-0 w-full h-full object-cover z-0" />
       {/* Overlay */}
@@ -135,84 +186,59 @@ function SignUp() {
 
           <form onSubmit={handleSubmit} noValidate>
             {/* First Name */}
-            <div className="mb-2">
-              <TextField
-                fullWidth
-                label="First name"
+            <div className="mb-3">
+              <FloatingInput
                 id="firstName"
                 name="firstName"
+                label="First name"
                 value={form.firstName}
                 onChange={handleChange}
-                required
-                variant="outlined"
-                size="small"
-                sx={fieldSx}
               />
             </div>
 
             {/* Last Name */}
-            <div className="mb-2">
-              <TextField
-                fullWidth
-                label="Last name"
+            <div className="mb-3">
+              <FloatingInput
                 id="lastName"
                 name="lastName"
+                label="Last name"
                 value={form.lastName}
                 onChange={handleChange}
-                required
-                variant="outlined"
-                size="small"
-                sx={fieldSx}
               />
             </div>
 
             {/* Email */}
-            <div className="mb-2">
-              <TextField
-                fullWidth
-                label="Email address"
+            <div className="mb-3">
+              <FloatingInput
                 id="email"
                 name="email"
+                label="Email address"
                 type="email"
                 value={form.email}
                 onChange={handleChange}
-                required
-                variant="outlined"
-                size="small"
-                sx={fieldSx}
               />
             </div>
 
             {/* Password */}
-            <div className="mb-2">
-              <TextField
-                fullWidth
-                label="Password (8+ characters)"
+            <div className="mb-3">
+              <FloatingInput
                 id="password"
                 name="password"
+                label="Password (8+ characters)"
                 type={showPassword ? 'text' : 'password'}
                 value={form.password}
                 onChange={handleChange}
-                required
-                inputProps={{ minLength: 8 }}
-                variant="outlined"
-                size="small"
-                sx={fieldSx}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                        size="small"
-                        aria-label={showPassword ? 'Hide password' : 'Show password'}
-                        sx={{ p: 0.5 }}
-                      >
-                        <img src={showPassword ? openEye : closeEye} alt="" className="w-5 h-5 object-contain" />
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
+                minLength={8}
+                endAdornment={
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="p-0 bg-transparent border-none cursor-pointer flex items-center"
+                  >
+                    <img src={showPassword ? openEye : closeEye} alt="" className="w-5 h-5 object-contain" />
+                  </button>
+                }
               />
             </div>
 
@@ -233,7 +259,7 @@ function SignUp() {
             {/* Create Account Button */}
             <button
               type="submit"
-              disabled={!agreed}
+              disabled={!isFormFilled}
               className="w-full h-12 border-none rounded-[50px] bg-[#0e9e9e] text-white text-base font-semibold font-[Outfit,sans-serif] cursor-pointer tracking-wide transition-colors hover:bg-[#0c8a8a] disabled:opacity-55 disabled:cursor-not-allowed"
             >
               Create account
