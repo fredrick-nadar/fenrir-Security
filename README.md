@@ -1,16 +1,44 @@
-# React + Vite
+# Project title : Fenrir Security Frontend Design Challenge
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project was made for the frontend design challenege to simulate and replicate  implementation of the Fenrir Security UI design challenge,
+including Login, Dashboard, and Active Scan Detail screens with dark/light mode.
 
-Currently, two official plugins are available:
+## Tech Stack 
+1) React (Vite)
+2) Tailwind CSS
+3) React Router for Single page routing
+4) Lucide Icons
+5) Google Fonts api for different fonts 
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Setup instruction
 
-## React Compiler
+1) Clone the repository : http://github.com/fredrick-nadar/fenrir-Security
+2) Enter into folder : cd fenrir-Security
+3) Install dependencies : npm install
+4) Run development server : npm run dev
+5) Navigate and view on browser : http://localhost:5173
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Features
 
-## Expanding the ESLint configuration
+1) Login page with navigation to dashboard
+2) Dashboard showing organization stats and scan list
+3) Active scan detail with live console and findings
+4) Dark and Light mode toggle
+5) Responsive layout
+6) Search and filtering on scans
+7) Mock data used for scans and findings
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Mock Data
+
+All scan data and findings are generated using local JSON mock data.
+No backend API is used as per the challenge requirements.
+
+## Known Limitations
+
+1) Authentication is simulated and not connected to a backend.
+2) Scan creation is mocked and does not trigger a real scan.
+3) Data persistence resets on page reload.
+
+## Live Demo Link : 
+
+https://fenrir-security-ten.vercel.app/
