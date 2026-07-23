@@ -38,7 +38,3 @@ No backend API is used as per the challenge requirements.
 1) Authentication is simulated and not connected to a backend.
 2) Scan creation is mocked and does not trigger a real scan.
 3) Data persistence resets on page reload.
-
-## Live Demo Link : 
-
-https://fenrir-security-ten.vercel.app/
